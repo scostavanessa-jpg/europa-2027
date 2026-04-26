@@ -26,13 +26,7 @@ function diffToTrip() {
   const ms = Math.max(0, new Date(TRIP_DATE) - new Date())
   const totalHours = Math.floor(ms / 3600000)
   const days = Math.floor(totalHours / 24)
-  return {
-    years: Math.floor(days / 365),
-    months: Math.floor(days / 30),
-    weeks: Math.floor(days / 7),
-    days,
-    hours: totalHours,
-  }
+  return { years: Math.floor(days / 365), months: Math.floor(days / 30), weeks: Math.floor(days / 7), days, hours: totalHours }
 }
 function timeInZone(tz) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: tz }).format(new Date())
@@ -57,12 +51,44 @@ function Login({ onSession }) {
       const result = mode === 'login' ? await supabase.auth.signInWithPassword(payload) : await supabase.auth.signUp(payload)
       if (result.error) throw result.error
       if (result.data?.session) onSession(result.data.session)
-      setMsg(mode === 'login' ? 'Login realizado.' : 'Conta criada. Se pedir confirmação, veja seu e-mail antes de tentar entrar.')
+      setMsg(mode === 'login' ? 'Login realizado.' : 'Conta criada. Se pedir confirmação, veja seu e-mail antes de entrar.')
     } catch (err) { setMsg(err.message || 'Erro ao processar login.') }
     finally { setBusy(false) }
   }
+  async function forgotPassword() {
+    if (!email) { setMsg('Digite seu e-mail primeiro para receber o link de redefinição.'); return }
+    setBusy(true); setMsg('')
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin })
+      if (error) throw error
+      setMsg('Enviei um link de redefinição para seu e-mail. Abra o e-mail e clique no link para criar uma nova senha.')
+    } catch (err) { setMsg(err.message || 'Não consegui enviar o e-mail de redefinição.') }
+    finally { setBusy(false) }
+  }
   if (!isSupabaseConfigured) return <div className="login"><div className="card"><h2>Configuração pendente</h2><p>Faltam as variáveis do Supabase na Vercel.</p></div></div>
-  return <div className="login"><div className="card"><h2>Entrar na viagem ✈️</h2><p className="muted">Login individual para Vanessa, Camila e Danielle.</p><div className="notice"><b>Atenção:</b> ao criar conta, use uma senha com pelo menos 6 caracteres. Se o cadastro pedir confirmação, abra o e-mail recebido antes de tentar entrar.</div><form onSubmit={submit}><label className="field">E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label><label className="field">Senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /><small className="muted">Mínimo de 6 caracteres.</small></label><button className="btn" disabled={busy}>{busy ? 'Processando...' : mode === 'login' ? 'Entrar' : 'Criar conta'}</button><button className="btn secondary" type="button" style={{ marginLeft: 8 }} onClick={()=>setMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? 'Criar conta' : 'Já tenho conta'}</button></form>{msg && <div className="notice">{msg}</div>}</div></div>
+  return <div className="login"><div className="card"><h2>Entrar na viagem ✈️</h2><p className="muted">Login individual para Vanessa, Camila e Danielle.</p><div className="notice"><b>Atenção:</b> ao criar conta, use uma senha com pelo menos 6 caracteres. Se o cadastro pedir confirmação, abra o e-mail recebido antes de tentar entrar.</div><form onSubmit={submit}><label className="field">E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label><label className="field">Senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /><small className="muted">Mínimo de 6 caracteres.</small></label><button className="btn" disabled={busy}>{busy ? 'Processando...' : mode === 'login' ? 'Entrar' : 'Criar conta'}</button><button className="btn secondary" type="button" style={{ marginLeft: 8 }} onClick={()=>setMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? 'Criar conta' : 'Já tenho conta'}</button><button className="btn secondary" type="button" style={{ marginLeft: 8, marginTop: 8 }} disabled={busy} onClick={forgotPassword}>Esqueci minha senha</button></form>{msg && <div className="notice">{msg}</div>}</div></div>
+}
+
+function ResetPassword({ onDone }) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  async function submit(e) {
+    e.preventDefault(); setMsg('')
+    if (password.length < 6) { setMsg('A senha precisa ter pelo menos 6 caracteres.'); return }
+    if (password !== confirm) { setMsg('As senhas não conferem.'); return }
+    setBusy(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      setMsg('Senha atualizada com sucesso. Você já pode entrar com a nova senha.')
+      window.history.replaceState({}, document.title, window.location.origin)
+      setTimeout(onDone, 1200)
+    } catch (err) { setMsg(err.message || 'Não consegui atualizar sua senha.') }
+    finally { setBusy(false) }
+  }
+  return <div className="login"><div className="card"><h2>Redefinir senha 🔐</h2><p className="muted">Crie uma nova senha para acessar o app da viagem.</p><form onSubmit={submit}><label className="field">Nova senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /></label><label className="field">Confirmar senha<input type="password" minLength="6" value={confirm} onChange={e=>setConfirm(e.target.value)} required /></label><button className="btn" disabled={busy}>{busy ? 'Salvando...' : 'Salvar nova senha'}</button></form>{msg && <div className="notice">{msg}</div>}</div></div>
 }
 
 function useData(session) {
@@ -169,12 +195,21 @@ function App(){
   const [session,setSession]=useState(null)
   const [tab,setTab]=useState('dashboard')
   const [adminView,setAdminView]=useState('all')
-  useEffect(()=>{ if(!supabase)return; supabase.auth.getSession().then(({data})=>setSession(data.session)); const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s)); return ()=>sub.subscription.unsubscribe() },[])
+  const [recoveryMode,setRecoveryMode]=useState(false)
+  useEffect(()=>{
+    if(!supabase)return
+    const urlText = `${window.location.hash} ${window.location.search}`
+    if (urlText.includes('type=recovery')) setRecoveryMode(true)
+    supabase.auth.getSession().then(({data})=>setSession(data.session))
+    const {data:sub}=supabase.auth.onAuthStateChange((event,s)=>{ if(event === 'PASSWORD_RECOVERY') setRecoveryMode(true); setSession(s) })
+    return ()=>sub.subscription.unsubscribe()
+  },[])
   const data=useData(session)
   const isAdmin = Boolean(session?.user?.email?.toLowerCase() === ADMIN_EMAIL || data.profile?.role === 'admin')
   const myParticipant = data.participants.find(p => p.profile_id === session?.user?.id)
   const visibleParticipants = isAdmin ? (adminView === 'all' ? data.participants : data.participants.filter(p => p.id === adminView)) : (myParticipant ? [myParticipant] : [])
   const tabs=[['dashboard','Dashboard'],['savings','Cofrinho'],['split','Racha'],['alerts','Alertas'],['checklist','Checklist'],['currencies','Moedas'],['profile','Perfil']]
+  if(recoveryMode) return <div className="app"><div className="hero"><div className="wrap"><div className="brand"><h1>Europa até Liverpool 2027</h1><p>Redefinição de senha</p></div></div></div><ResetPassword onDone={()=>{setRecoveryMode(false); supabase.auth.signOut(); setSession(null)}}/></div>
   if(!session)return <div className="app"><div className="hero"><div className="wrap"><div className="brand"><h1>Europa até Liverpool 2027</h1><p>Login por e-mail e senha. Cofrinho individual. Racha compartilhado.</p></div></div></div><Login onSession={setSession}/></div>
   if(data.loading)return <div className="app"><div className="loading">Carregando...</div></div>
   if(data.error)return <div className="app"><div className="error">{data.error}</div></div>
