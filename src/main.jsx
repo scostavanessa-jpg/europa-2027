@@ -39,25 +39,11 @@ function Login({ onSession }) {
     }
   }
 
-  async function oauth(provider) {
-    setMsg('')
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin }
-    })
-    if (error) setMsg(error.message)
-  }
-
   if (!isSupabaseConfigured) {
     return <div className="login"><div className="card"><h2>Configuração pendente</h2><p>Faltam as variáveis do Supabase na Vercel.</p></div></div>
   }
 
   return <div className="login"><div className="card"><h2>Entrar na viagem ✈️</h2><p className="muted">Login individual para Vanessa, Camila e Danielle.</p>
-    <div className="row" style={{marginBottom:12}}>
-      <button className="btn secondary" type="button" onClick={() => oauth('google')}>Entrar com Google</button>
-      <button className="btn secondary" type="button" onClick={() => oauth('apple')}>Entrar com Apple</button>
-    </div>
-    <div className="notice">Google/Apple só funcionam depois de habilitar os provedores no Supabase. E-mail e senha já deve funcionar com este ajuste.</div>
     <form onSubmit={submit}>
       <label className="field">E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label>
       <label className="field">Senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /></label>
