@@ -44,9 +44,11 @@ function Login({ onSession }) {
   }
 
   return <div className="login"><div className="card"><h2>Entrar na viagem ✈️</h2><p className="muted">Login individual para Vanessa, Camila e Danielle.</p>
+    <div className="notice"><b>Atenção:</b> ao criar conta, use uma senha com pelo menos 6 caracteres. Se o cadastro pedir confirmação, abra o e-mail recebido antes de tentar entrar.</div>
+    <div className="notice"><b>iPhone/Safari:</b> abrir pelo link principal <b>https://europa-2027.vercel.app</b>. Se não carregar, tocar no ícone de compartilhar e escolher “Abrir no Safari”, ou limpar a aba e tentar novamente. Evitar abrir por prévia dentro do WhatsApp/Instagram.</div>
     <form onSubmit={submit}>
       <label className="field">E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></label>
-      <label className="field">Senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /></label>
+      <label className="field">Senha<input type="password" minLength="6" value={password} onChange={e=>setPassword(e.target.value)} required /><small className="muted">Mínimo de 6 caracteres. Exemplo: letras + números. Guarde a senha em local seguro.</small></label>
       <button className="btn" disabled={busy}>{busy ? 'Processando...' : mode === 'login' ? 'Entrar' : 'Criar conta'}</button>
       <button className="btn secondary" type="button" style={{marginLeft:8}} onClick={()=>setMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? 'Criar conta' : 'Já tenho conta'}</button>
     </form>
