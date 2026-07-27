@@ -1,0 +1,20 @@
+import { useEffect, useState } from "react";
+import { useTripDate } from "@/hooks/useTripDate";
+import { CalendarHeart, Pencil, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+const diff = (target: Date) => { const now = new Date(); let ms = target.getTime() - now.getTime(); const past = ms < 0; ms = Math.abs(ms); const totalH = Math.floor(ms / 36e5); const totalDays = Math.floor(ms / 864e5); const years = Math.floor(totalDays / 365.25); const rem = totalDays - Math.floor(years * 365.25); const months = Math.floor(rem / 30.4375); return { past, years, months, weeks: Math.floor(totalDays / 7), days: Math.floor(rem - months * 30.4375), hours: totalH % 24, minutes: Math.floor((ms / 6e4) % 60), totalDays }; };
+const Cell = ({ value, label }: { value: number; label: string }) => <div className="bg-cream rounded-2xl px-3 py-3 md:px-4 md:py-4 text-center border border-gold/30"><div className="font-display text-3xl md:text-4xl text-ink leading-none tabular-nums">{value}</div><div className="text-[10px] md:text-xs uppercase tracking-wider text-olive mt-1">{label}</div></div>;
+
+export const Countdown = () => {
+  const { date, set, reset } = useTripDate(); const [, tick] = useState(0); const [editing, setEditing] = useState(false);
+  useEffect(() => { const t = setInterval(() => tick(n => n + 1), 60000); return () => clearInterval(t); }, []);
+  const d = diff(date); const local = new Date(date.getTime() - date.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  return <section id="contador" className="container mx-auto px-6 max-w-6xl pt-10 no-print"><div className="rounded-3xl bg-card border border-gold/30 shadow-card p-5 md:p-7">
+    <div className="flex items-start gap-3 mb-4"><div className="w-10 h-10 rounded-xl bg-gold/15 flex items-center justify-center"><CalendarHeart className="h-5 w-5 text-olive" /></div><div className="flex-1"><p className="text-xs tracking-[0.3em] uppercase text-olive">Contagem regressiva</p><h2 className="font-display text-2xl md:text-3xl text-ink">{d.past ? "A viagem começou!" : "Até Liverpool 2027"}</h2><p className="text-xs text-muted-foreground mt-1">Partida prevista: <strong className="text-ink">{date.toLocaleString("pt-BR", { dateStyle:"long", timeStyle:"short" })}</strong></p></div><div className="flex gap-1"><Button variant="ghost" size="sm" className="rounded-full" onClick={() => setEditing(v=>!v)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="sm" className="rounded-full" onClick={reset}><RotateCcw className="h-4 w-4" /></Button></div></div>
+    {editing && <div className="mb-5 p-4 rounded-2xl bg-secondary/50"><label className="text-xs uppercase tracking-wider text-olive block mb-2">Data e hora da partida</label><Input type="datetime-local" value={local} onChange={e => e.target.value && set(new Date(e.target.value).toISOString())} /></div>}
+    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3"><Cell value={d.years} label="anos"/><Cell value={d.months} label="meses"/><Cell value={d.weeks} label="semanas"/><Cell value={d.days} label="dias"/><Cell value={d.hours} label="horas"/><Cell value={d.minutes} label="min"/></div>
+    <div className="mt-5 grid sm:grid-cols-2 gap-3"><div className="p-4 rounded-2xl bg-gold/15 border border-gold/40"><div className="text-[10px] uppercase tracking-wider text-olive mb-1">Grande objetivo</div><div className="font-display text-xl text-ink">30 dias vivendo Liverpool</div><p className="text-xs text-foreground/70 mt-1">Intercâmbio, rotina local, passeios e jiu-jitsu.</p></div><div className="p-4 rounded-2xl bg-secondary/60"><div className="text-[10px] uppercase tracking-wider text-olive mb-1">Preparação</div><p className="text-xs text-foreground/80">Voos, documentos, estadias, câmbio e roteiro ficam organizados por etapas até a partida.</p></div></div>
+  </div></section>;
+};
