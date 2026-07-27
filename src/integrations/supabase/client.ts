@@ -1,29 +1,26 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Public client credentials from the original Lovable project.
-// These values are intentionally browser-visible; data security is enforced by Supabase RLS.
-const ORIGINAL_SUPABASE_URL = "https://dbvtxklavdgjndgwpboo.supabase.co";
-const ORIGINAL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ML9VFIW30T8KQFCwNHM3Lg_mkQBEYqj";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ORIGINAL_SUPABASE_URL;
-const SUPABASE_KEY =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  ORIGINAL_SUPABASE_PUBLISHABLE_KEY;
-
-function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
-}
+// During the Lovable -> GitHub/Vercel migration, production is intentionally
+// pinned to the original Lovable Supabase project so stale Vercel variables
+// cannot point authentication at a different backend.
+const SUPABASE_URL = "https://dbvtxklavdgjndgwpboo.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ML9VFIW30T8KQFCwNHM3Lg_mkQBEYqj";
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(
       typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
     );
-    if (init?.headers) new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    if (isNewSupabaseApiKey(supabaseKey) && headers.get("Authorization") === `Bearer ${supabaseKey}`) {
+
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+    }
+
+    // Supabase's new publishable keys are opaque API keys, not bearer JWTs.
+    if (headers.get("Authorization") === `Bearer ${supabaseKey}`) {
       headers.delete("Authorization");
     }
+
     headers.set("apikey", supabaseKey);
     return fetch(input, { ...init, headers });
   };
