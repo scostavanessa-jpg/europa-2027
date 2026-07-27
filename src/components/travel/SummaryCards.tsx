@@ -1,0 +1,10 @@
+import { CalendarDays, Building2, Sparkles, GraduationCap, Dumbbell, Route } from "lucide-react";
+const items = [
+  { icon: CalendarDays, label: "Partida planejada", value: "08 out 2027", note: "Com flexibilidade para oportunidades de voo" },
+  { icon: Route, label: "Rota europeia", value: "Flexível", note: "Pode ser otimizada por custo, tempo e desejos" },
+  { icon: GraduationCap, label: "Destino-âncora", value: "Liverpool · 30 dias", note: "Intercâmbio e rotina local" },
+  { icon: Dumbbell, label: "Experiência pessoal", value: "Jiu-jitsu", note: "Treinos durante o mês em Liverpool" },
+  { icon: Building2, label: "Cidades desejadas", value: "Itália · Alpes · UK", note: "Outras cidades entram se fizerem sentido" },
+  { icon: Sparkles, label: "Estilo", value: "Bonito · inteligente", note: "Sem correria e sem perrengue" },
+];
+export const SummaryCards = () => <section id="resumo" className="container mx-auto px-6 py-16 md:py-24 max-w-6xl"><div className="mb-10 max-w-2xl"><p className="text-xs tracking-[0.3em] uppercase text-olive mb-3">Visão geral</p><h2 className="font-display text-4xl md:text-5xl text-ink">Uma viagem que pode mudar de rota</h2><p className="mt-4 text-muted-foreground">O plano acompanha vocês: compara caminhos, preserva os imperdíveis e deixa Liverpool como o grande destino da experiência.</p></div><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">{items.map(it=><div key={it.label} className="rounded-3xl bg-card border border-border/60 p-7 shadow-card hover:shadow-soft transition-shadow"><div className="w-12 h-12 rounded-2xl bg-gold/20 flex items-center justify-center mb-5"><it.icon className="h-5 w-5 text-olive"/></div><p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{it.label}</p><p className="font-display text-2xl text-ink leading-snug">{it.value}</p><p className="text-sm text-muted-foreground mt-2">{it.note}</p></div>)}</div></section>;
