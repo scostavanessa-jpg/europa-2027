@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/auth", "destination": "/index.html" },
+    { "source": "/grupo", "destination": "/index.html" },
+    { "source": "/ofertas", "destination": "/index.html" }
+  ]
+}
