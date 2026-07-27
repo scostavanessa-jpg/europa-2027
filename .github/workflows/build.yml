@@ -10,12 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          show-progress: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
+      - name: Checkout PR merge
+        run: |
+          git clone --quiet "https://github.com/${GITHUB_REPOSITORY}.git" .
+          git fetch --quiet origin "refs/pull/${{ github.event.pull_request.number }}/merge:pr-merge" || true
+          if [ -n "${{ github.event.pull_request.number }}" ]; then git checkout --quiet pr-merge; else git checkout --quiet "$GITHUB_SHA"; fi
       - name: Install
         run: npm install --silent --no-audit --no-fund
       - name: Build app
