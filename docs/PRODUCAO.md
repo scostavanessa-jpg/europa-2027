@@ -13,23 +13,41 @@
 - Cards de Combinados do Grupo ligados às áreas funcionais.
 - Ofertas, roteiro, mapa, hospedagem e demais áreas preservadas no visual editorial premium.
 
-## Persistência atual
+## Backend oficial
 
-A autenticação usa Supabase. Durante a migração para fora do Lovable, checklist, cofrinho, prioridades e preferências estão persistidos por usuário no navegador. O Rateio está persistido como dado do grupo no navegador.
+O backend oficial passa a ser **Neon PostgreSQL + Neon Auth + Neon Data API**, mantendo Vercel como hospedagem e GitHub como fonte do código.
 
-Isso deixa as funções utilizáveis em produção, mas ainda não oferece sincronização multi-dispositivo/multiusuário para os dados funcionais.
+A aplicação já contém o cliente Neon e troca automaticamente para Neon quando estas variáveis existirem no deploy:
 
-## Backend definitivo já documentado
+- `VITE_NEON_AUTH_URL`
+- `VITE_NEON_DATA_API_URL`
 
-O backend definitivo deve usar as tabelas e RLS do `supabase/schema_fase2.sql`, mantendo:
+Enquanto a infraestrutura Neon ainda não estiver conectada à Vercel, o Supabase anterior permanece apenas como fallback temporário para evitar indisponibilidade do login.
 
-- dados pessoais de cofrinho/checklist privados por participante;
-- dados compartilhados de roteiro, rateio, alertas gerais e moedas visíveis às três usuárias autenticadas;
-- Vanessa como organizadora/admin;
-- nenhuma chave secreta no frontend.
+## Schema e segurança
 
-## Bloqueio atual de infraestrutura
+O schema de produção está em `neon/schema.sql` e inclui:
 
-O projeto Supabase dedicado `Europa-2027` existe, mas está inativo. A tentativa de restaurá-lo foi recusada pelo limite de dois projetos gratuitos ativos da conta. Os dois projetos ativos existentes não devem ser pausados automaticamente porque pertencem a outros produtos.
+- perfis e papéis;
+- Vanessa como organizadora após o primeiro login;
+- vínculo de Vanessa, Camila e Danielle aos participantes;
+- cofrinho individual;
+- prioridades pessoais;
+- preferências de alerta;
+- checklist individual;
+- Rateio compartilhado;
+- roteiro, hospedagens e alertas;
+- histórico de preços de voos;
+- Row Level Security usando `auth.user_id()` do Neon Data API.
 
-Quando houver um slot livre ou plano que permita o terceiro projeto ativo, aplicar `supabase/schema_fase2.sql`, migrar a persistência do navegador para o banco e ativar RLS antes de considerar a sincronização em nuvem concluída.
+Dados pessoais ficam privados por usuária. Dados do grupo ficam colaborativos somente para usuárias autenticadas.
+
+## Persistência durante a transição
+
+Checklist, cofrinho, prioridades, preferências e Rateio ainda preservam a persistência local atual até a conexão Neon ser concluída. Isso impede perda de funcionalidade durante a troca de provedor.
+
+Após ativar Neon Auth + Data API e aplicar `neon/schema.sql`, a próxima etapa é mover esses módulos para as tabelas Neon e então remover completamente `@supabase/supabase-js` e o fallback antigo.
+
+## Pendência externa
+
+A criação/conexão do recurso Neon precisa ser autorizada na conta Vercel/Neon da proprietária. Nenhuma chave secreta deve ser colocada no repositório ou no frontend.
