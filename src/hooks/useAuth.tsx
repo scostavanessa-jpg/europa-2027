@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isNeonConfigured } from "@/integrations/supabase/client";
 
 export type AppRole = "organizadora" | "editora" | "convidada";
 type Profile = { id: string; display_name: string | null; email: string | null; avatar_url: string | null };
@@ -17,6 +17,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const loadExtras = async (uid: string) => {
+    if (isNeonConfigured) {
+      try { await supabase.rpc("bootstrap_current_user"); } catch {}
+    }
     const [{ data: p }, { data: r }] = await Promise.all([
       supabase.from("profiles").select("id, display_name, email, avatar_url").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
@@ -27,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event: unknown, s: Session | null) => {
       if (!mounted) return;
       setSession(s);
       setUser(s?.user ?? null);
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (s?.user) setTimeout(() => loadExtras(s.user.id), 0);
       else { setProfile(null); setRoles([]); }
     });
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }: any) => {
       if (!mounted) return;
       setSession(data.session);
       setUser(data.session?.user ?? null);
