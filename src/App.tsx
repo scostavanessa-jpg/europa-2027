@@ -5,6 +5,8 @@ import NotFound from "./pages/NotFound";
 import Ofertas from "./pages/Ofertas";
 import Auth from "./pages/Auth";
 import Grupo from "./pages/Grupo";
+import MinhaViagem from "./pages/MinhaViagem";
+import Rateio from "./pages/Rateio";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -22,10 +24,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
-  }
-
+  if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
   return <>{children}</>;
 }
 
@@ -38,6 +37,8 @@ export default function App() {
           <Route path="/" element={<PrivateRoute><Index /></PrivateRoute>} />
           <Route path="/ofertas" element={<PrivateRoute><Ofertas /></PrivateRoute>} />
           <Route path="/grupo" element={<PrivateRoute><Grupo /></PrivateRoute>} />
+          <Route path="/minha-viagem" element={<PrivateRoute><MinhaViagem /></PrivateRoute>} />
+          <Route path="/rateio" element={<PrivateRoute><Rateio /></PrivateRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster richColors position="top-center" />
