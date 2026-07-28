@@ -176,6 +176,49 @@ create table if not exists public.flight_price_history (
   offer_url text
 );
 
+-- First-login bootstrap. It creates the profile safely and automatically gives
+-- Vanessa the organizer role based on her email. No client can self-promote.
+create or replace function public.bootstrap_current_user()
+returns void
+language plpgsql
+security definer
+set search_path = public, neon_auth
+as $$
+declare
+  uid text := auth.user_id();
+  uemail text;
+  uname text;
+begin
+  if uid is null then raise exception 'not authenticated'; end if;
+  select email, name into uemail, uname from neon_auth.user where id=uid;
+  insert into public.profiles(id,display_name,email)
+  values(uid,coalesce(nullif(uname,''),split_part(uemail,'@',1)),uemail)
+  on conflict(id) do update set email=excluded.email, display_name=coalesce(public.profiles.display_name,excluded.display_name), updated_at=now();
+
+  if lower(uemail)='scosta.vanessa@gmail.com' then
+    insert into public.user_roles(user_id,role) values(uid,'organizadora') on conflict do nothing;
+    update public.participants set user_id=uid,email=uemail where name='Vanessa' and (user_id is null or user_id=uid);
+  end if;
+end;
+$$;
+
+-- Camila and Danielle can claim only an unclaimed participant row once.
+create or replace function public.claim_participant(participant_name text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid text := auth.user_id();
+begin
+  if uid is null then raise exception 'not authenticated'; end if;
+  if exists(select 1 from public.participants where user_id=uid) then raise exception 'account already linked'; end if;
+  update public.participants set user_id=uid where name=participant_name and user_id is null;
+  if not found then raise exception 'participant unavailable'; end if;
+end;
+$$;
+
 -- Data API requires RLS on every exposed table.
 alter table public.profiles enable row level security;
 alter table public.user_roles enable row level security;
@@ -232,6 +275,3 @@ create policy route_group on public.route_items for all to authenticated using (
 create policy accommodations_group on public.accommodations for all to authenticated using (true) with check (true);
 create policy alerts_group on public.alerts for all to authenticated using (true) with check (true);
 create policy flight_history_group on public.flight_price_history for all to authenticated using (true) with check (true);
-
--- Vanessa is promoted by application email check after first login; this table policy
--- intentionally does not allow clients to self-promote roles.
