@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/bootstrap-neon.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ops/neon-bootstrap-trigger.txt'
 
 jobs:
   bootstrap:
