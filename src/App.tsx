@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
+import { LockKeyhole } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Ofertas from "./pages/Ofertas";
@@ -10,7 +12,7 @@ import Rateio from "./pages/Rateio";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isTripMember, signOut } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -25,6 +27,25 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+
+  if (!isTripMember) {
+    return (
+      <div className="min-h-screen bg-gradient-warm grid place-items-center px-5 py-10">
+        <div className="w-full max-w-md rounded-[2rem] border border-gold/30 bg-card/95 p-8 text-center shadow-soft">
+          <div className="mx-auto h-12 w-12 rounded-2xl bg-gold/15 grid place-items-center">
+            <LockKeyhole className="h-5 w-5 text-olive" />
+          </div>
+          <p className="mt-5 text-[10px] tracking-[0.3em] uppercase text-olive">Europa até Liverpool 2027</p>
+          <h1 className="font-display text-3xl text-ink mt-2">Conta aguardando aprovação</h1>
+          <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+            O planejamento é privado. Somente Vanessa, Camila e Danielle vinculadas ao grupo conseguem acessar o roteiro e os dados da viagem.
+          </p>
+          <Button variant="outline" className="rounded-full mt-6" onClick={() => void signOut()}>Sair</Button>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
 
