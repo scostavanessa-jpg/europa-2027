@@ -20,7 +20,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background grid place-items-center px-6">
         <div className="text-center">
           <div className="mx-auto h-9 w-9 rounded-full border-2 border-gold/30 border-t-olive animate-spin" />
-          <p className="mt-4 text-sm text-muted-foreground">Abrindo sua viagem…</p>
+          <p className="mt-4 text-sm text-muted-foreground">Abrindo nossa viagem…</p>
         </div>
       </div>
     );
@@ -35,12 +35,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
           <div className="mx-auto h-12 w-12 rounded-2xl bg-gold/15 grid place-items-center">
             <LockKeyhole className="h-5 w-5 text-olive" />
           </div>
-          <p className="mt-5 text-[10px] tracking-[0.3em] uppercase text-olive">Europa até Liverpool 2027</p>
-          <h1 className="font-display text-3xl text-ink mt-2">Conta aguardando aprovação</h1>
+          <p className="mt-5 text-[10px] tracking-[0.3em] uppercase text-olive">Europa 2028</p>
+          <h1 className="font-display text-3xl text-ink mt-2">Acesso restrito ao grupo</h1>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            O planejamento é privado. Somente Vanessa, Camila e Danielle vinculadas ao grupo conseguem acessar o roteiro e os dados da viagem.
+            O planejamento é privado para Vanessa, Camila e Danielle. Cada viajante usa seu próprio acesso.
           </p>
-          <Button variant="outline" className="rounded-full mt-6" onClick={() => void signOut()}>Sair</Button>
+          <Button variant="outline" className="rounded-full mt-6 min-h-11" onClick={() => void signOut()}>Sair</Button>
         </div>
       </div>
     );
