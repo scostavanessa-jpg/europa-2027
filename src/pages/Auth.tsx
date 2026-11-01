@@ -6,17 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, LockKeyhole } from "lucide-react";
+import { ArrowLeft, KeyRound, LockKeyhole, Mail } from "lucide-react";
+
+type Mode = "login" | "signup" | "forgot" | "reset";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const recovery = new URLSearchParams(window.location.search).get("reset") === "1";
-  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "reset">(recovery ? "reset" : "login");
+  const [mode, setMode] = useState<Mode>(recovery ? "reset" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [name, setName] = useState("");
+  const [accessKey, setAccessKey] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -28,15 +31,37 @@ const Auth = () => {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (password.length < 6) throw new Error("A senha precisa ter pelo menos 6 caracteres.");
+        if (password !== confirm) throw new Error("As senhas não conferem.");
+
+        const inviteRes = await fetch("/api/invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessKey: accessKey.trim() }),
+        });
+        const invite = await inviteRes.json().catch(() => ({}));
+        if (!inviteRes.ok) throw new Error(invite?.error || "Não foi possível validar a chave da viagem.");
+
         const { error } = await supabase.auth.signUp({
-          email: email.trim(), password,
-          options: { emailRedirectTo: `${window.location.origin}/`, data: { full_name: name.trim(), name: name.trim() } },
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: { full_name: name.trim(), name: name.trim() },
+          },
         });
         if (error) throw error;
-        toast.success("Conta criada", { description: "Se a confirmação por e-mail estiver ativa, confirme antes do primeiro acesso." });
+        toast.success("Primeiro acesso criado", {
+          description: "Se o e-mail de confirmação estiver ativo, confirme a mensagem antes de entrar.",
+        });
         setMode("login");
+        setPassword("");
+        setConfirm("");
+        setAccessKey("");
       } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/auth?reset=1` });
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/auth?reset=1`,
+        });
         if (error) throw error;
         toast.success("Link enviado", { description: "Confira seu e-mail para criar uma nova senha." });
         setMode("login");
@@ -55,32 +80,116 @@ const Auth = () => {
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
       toast.error(msg.includes("Invalid login") ? "E-mail ou senha inválidos." : msg);
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const title = mode === "signup" ? "Criar sua conta" : mode === "forgot" ? "Recuperar senha" : mode === "reset" ? "Nova senha" : "Entrar na viagem";
-  const subtitle = mode === "signup" ? "Uma conta para cada viajante." : mode === "forgot" ? "Enviaremos um link seguro para seu e-mail." : mode === "reset" ? "Escolha sua nova senha." : "Vanessa, Camila e Danielle — planejamento privado do grupo.";
+  const isEntry = mode === "login" || mode === "signup";
+  const title = mode === "signup" ? "Primeiro acesso" : mode === "forgot" ? "Recuperar senha" : mode === "reset" ? "Criar nova senha" : "Entrar na viagem";
+  const subtitle = mode === "signup"
+    ? "Use a chave da viagem uma única vez e crie sua senha pessoal."
+    : mode === "forgot"
+      ? "Enviaremos um link seguro para o seu e-mail."
+      : mode === "reset"
+        ? "Escolha uma nova senha para continuar."
+        : "Vanessa, Camila e Danielle · nosso planejamento privado.";
 
   return (
-    <div className="min-h-screen bg-gradient-warm flex items-center justify-center px-5 py-10">
+    <div className="min-h-screen bg-gradient-warm flex items-center justify-center px-4 py-6 sm:px-6 sm:py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-olive mb-5"><ArrowLeft className="h-4 w-4" /> Voltar à viagem</Link>
-        <div className="rounded-[2rem] border border-gold/30 bg-card/95 shadow-soft p-7 md:p-9 backdrop-blur">
-          <div className="h-11 w-11 rounded-2xl bg-gold/15 grid place-items-center mb-5"><LockKeyhole className="h-5 w-5 text-olive" /></div>
-          <p className="text-[10px] tracking-[0.3em] uppercase text-olive mb-2">Europa até Liverpool 2027</p>
-          <h1 className="font-display text-4xl text-ink">{title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
+        <Link to="/" className="inline-flex min-h-11 items-center gap-2 text-sm text-olive mb-3 px-1">
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </Link>
+
+        <div className="rounded-[1.75rem] sm:rounded-[2rem] border border-gold/30 bg-card/95 shadow-soft p-5 sm:p-8 backdrop-blur">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="h-12 w-12 rounded-2xl bg-gold/15 grid place-items-center shrink-0">
+              <LockKeyhole className="h-5 w-5 text-olive" />
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] tracking-[0.28em] uppercase text-olive">Europa 2028</p>
+              <p className="text-xs text-muted-foreground mt-1">março · abril</p>
+            </div>
+          </div>
+
+          {isEntry && (
+            <div className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary/70 p-1 mb-6" role="tablist" aria-label="Tipo de acesso">
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "login" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}
+              >
+                Entrar
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "signup" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}
+              >
+                Primeiro acesso
+              </button>
+            </div>
+          )}
+
+          <h1 className="font-display text-4xl sm:text-5xl text-ink leading-none">{title}</h1>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
 
           <form onSubmit={submit} className="space-y-4 mt-7">
-            {mode === "signup" && <div className="space-y-1.5"><Label htmlFor="name">Nome</Label><Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" /></div>}
-            {mode !== "reset" && <div className="space-y-1.5"><Label htmlFor="email">E-mail</Label><Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" /></div>}
-            {mode !== "forgot" && <div className="space-y-1.5"><Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Senha"}</Label><Input id="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></div>}
-            {mode === "reset" && <div className="space-y-1.5"><Label htmlFor="confirm">Confirmar nova senha</Label><Input id="confirm" type="password" minLength={6} required value={confirm} onChange={(e) => setConfirm(e.target.value)} /></div>}
-            <Button type="submit" disabled={busy} className="w-full h-12 rounded-full shadow-card">{busy ? "Processando…" : mode === "signup" ? "Criar conta" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar"}</Button>
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="name">Seu nome</Label>
+                <Input id="name" className="h-12 text-base rounded-xl" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Vanessa, Camila ou Danielle" />
+              </div>
+            )}
+
+            {mode !== "reset" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="email">E-mail</Label>
+                <Input id="email" className="h-12 text-base rounded-xl" type="email" autoComplete="email" inputMode="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="accessKey">Chave da viagem</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive" />
+                  <Input id="accessKey" className="h-12 text-base rounded-xl pl-10" type="password" autoComplete="off" required value={accessKey} onChange={(e) => setAccessKey(e.target.value)} placeholder="Chave compartilhada" />
+                </div>
+                <p className="text-xs text-muted-foreground">Você usa essa chave só para criar seu acesso. Depois, entra com seu e-mail e sua própria senha.</p>
+              </div>
+            )}
+
+            {mode !== "forgot" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Sua senha"}</Label>
+                <Input id="password" className="h-12 text-base rounded-xl" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+            )}
+
+            {(mode === "signup" || mode === "reset") && (
+              <div className="space-y-1.5">
+                <Label htmlFor="confirm">Confirmar senha</Label>
+                <Input id="confirm" className="h-12 text-base rounded-xl" type="password" autoComplete="new-password" minLength={6} required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+              </div>
+            )}
+
+            <Button type="submit" disabled={busy} className="w-full h-12 rounded-full shadow-card text-base">
+              {busy ? "Processando…" : mode === "signup" ? "Criar meu acesso" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar"}
+            </Button>
           </form>
 
-          {mode === "login" && <button type="button" onClick={() => setMode("forgot")} className="mt-4 w-full inline-flex justify-center items-center gap-2 text-sm text-olive hover:underline"><Mail className="h-4 w-4" /> Esqueci minha senha</button>}
-          {mode !== "reset" && <div className="mt-6 pt-5 border-t border-border/60 text-center"><button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")} className="text-sm text-ink hover:text-olive">{mode === "signup" ? "Já tenho conta" : "Ainda não tenho conta"}</button></div>}
+          {mode === "login" && (
+            <button type="button" onClick={() => setMode("forgot")} className="mt-4 min-h-11 w-full inline-flex justify-center items-center gap-2 text-sm text-olive hover:underline">
+              <Mail className="h-4 w-4" /> Esqueci minha senha
+            </button>
+          )}
+          {(mode === "forgot" || mode === "reset") && (
+            <button type="button" onClick={() => setMode("login")} className="mt-4 min-h-11 w-full text-sm text-olive hover:underline">
+              Voltar para entrar
+            </button>
+          )}
         </div>
       </div>
     </div>
