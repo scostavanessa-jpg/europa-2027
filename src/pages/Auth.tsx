@@ -26,6 +26,20 @@ const Auth = () => {
     if (!loading && user && mode !== "reset") navigate("/", { replace: true });
   }, [user, loading, navigate, mode]);
 
+  const signInWithGoogle = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/` },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      toast.error(err?.message || "Não foi possível entrar com Google agora.");
+      setBusy(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -135,7 +149,27 @@ const Auth = () => {
           <h1 className="font-display text-4xl sm:text-5xl text-ink leading-none">{title}</h1>
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
 
-          <form onSubmit={submit} className="space-y-4 mt-7">
+          {mode === "login" && (
+            <div className="mt-7">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void signInWithGoogle()}
+                className="w-full h-12 rounded-full border-border bg-background text-base font-medium shadow-sm"
+              >
+                <span className="mr-2 grid h-6 w-6 place-items-center rounded-full bg-white text-sm font-bold text-ink shadow-sm">G</span>
+                Continuar com Google
+              </Button>
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">ou</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={submit} className={`space-y-4 ${mode === "login" ? "" : "mt-7"}`}>
             {mode === "signup" && (
               <div className="space-y-1.5">
                 <Label htmlFor="name">Seu nome</Label>
@@ -176,7 +210,7 @@ const Auth = () => {
             )}
 
             <Button type="submit" disabled={busy} className="w-full h-12 rounded-full shadow-card text-base">
-              {busy ? "Processando…" : mode === "signup" ? "Criar meu acesso" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar"}
+              {busy ? "Processando…" : mode === "signup" ? "Criar meu acesso" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar com e-mail"}
             </Button>
           </form>
 
