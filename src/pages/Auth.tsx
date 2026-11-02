@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { neonAuthClient, supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +26,30 @@ const Auth = () => {
     if (!loading && user && mode !== "reset") navigate("/", { replace: true });
   }, [user, loading, navigate, mode]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error") || params.get("oauth_error");
+    if (!oauthError || user || loading) return;
+
+    toast.error("O Google não concluiu o acesso.", {
+      description: "Tente novamente. Seu acesso e seus dados continuam seguros.",
+    });
+    window.history.replaceState({}, "", "/auth");
+  }, [user, loading]);
+
   const signInWithGoogle = async () => {
     setBusy(true);
     try {
+      if (neonAuthClient) {
+        const result: any = await neonAuthClient.signIn.social({
+          provider: "google",
+          callbackURL: `${window.location.origin}/`,
+          errorCallbackURL: `${window.location.origin}/auth?oauth_error=1`,
+        });
+        if (result?.error) throw result.error;
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/` },
