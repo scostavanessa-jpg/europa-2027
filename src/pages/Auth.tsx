@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { neonAuthClient, supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,35 +31,11 @@ const Auth = () => {
     const oauthError = params.get("error") || params.get("oauth_error");
     if (!oauthError || user || loading) return;
 
-    toast.error("O Google não concluiu o acesso.", {
-      description: "Tente novamente. Seu acesso e seus dados continuam seguros.",
+    toast.info("O acesso agora usa sua senha pessoal.", {
+      description: "Se você já entrou com Google antes, use ‘Esqueci minha senha’ uma vez para criar sua senha.",
     });
     window.history.replaceState({}, "", "/auth");
   }, [user, loading]);
-
-  const signInWithGoogle = async () => {
-    setBusy(true);
-    try {
-      if (neonAuthClient) {
-        const result: any = await neonAuthClient.signIn.social({
-          provider: "google",
-          callbackURL: `${window.location.origin}/`,
-          errorCallbackURL: `${window.location.origin}/auth?oauth_error=1`,
-        });
-        if (result?.error) throw result.error;
-        return;
-      }
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/` },
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      toast.error(err?.message || "Não foi possível entrar com Google agora.");
-      setBusy(false);
-    }
-  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +63,7 @@ const Auth = () => {
         });
         if (error) throw error;
         toast.success("Primeiro acesso criado", {
-          description: "Se o e-mail de confirmação estiver ativo, confirme a mensagem antes de entrar.",
+          description: "Seu acesso está pronto. Depois, você entra somente com e-mail e sua senha pessoal.",
         });
         setMode("login");
         setPassword("");
@@ -114,7 +90,13 @@ const Auth = () => {
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
-      toast.error(msg.includes("Invalid login") ? "E-mail ou senha inválidos." : msg);
+      if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
+        toast.error("Esse e-mail já tem uma conta.", {
+          description: "Use ‘Esqueci minha senha’ para criar ou recuperar sua senha pessoal.",
+        });
+      } else {
+        toast.error(msg.includes("Invalid login") ? "E-mail ou senha inválidos." : msg);
+      }
     } finally {
       setBusy(false);
     }
@@ -171,26 +153,12 @@ const Auth = () => {
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
 
           {mode === "login" && (
-            <div className="mt-7">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy}
-                onClick={() => void signInWithGoogle()}
-                className="w-full h-12 rounded-full border-border bg-background text-base font-medium shadow-sm"
-              >
-                <span className="mr-2 grid h-6 w-6 place-items-center rounded-full bg-white text-sm font-bold text-ink shadow-sm">G</span>
-                Continuar com Google
-              </Button>
-              <div className="my-5 flex items-center gap-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">ou</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+            <div className="mt-5 rounded-2xl border border-gold/20 bg-secondary/45 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+              Cada viajante entra com seu próprio e-mail e senha. No primeiro acesso, use a chave da viagem para criar sua conta.
             </div>
           )}
 
-          <form onSubmit={submit} className={`space-y-4 ${mode === "login" ? "" : "mt-7"}`}>
+          <form onSubmit={submit} className="mt-7 space-y-4">
             {mode === "signup" && (
               <div className="space-y-1.5">
                 <Label htmlFor="name">Seu nome</Label>
@@ -231,7 +199,7 @@ const Auth = () => {
             )}
 
             <Button type="submit" disabled={busy} className="w-full h-12 rounded-full shadow-card text-base">
-              {busy ? "Processando…" : mode === "signup" ? "Criar meu acesso" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar com e-mail"}
+              {busy ? "Processando…" : mode === "signup" ? "Criar meu acesso" : mode === "forgot" ? "Enviar link" : mode === "reset" ? "Salvar nova senha" : "Entrar"}
             </Button>
           </form>
 
