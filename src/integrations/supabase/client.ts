@@ -1,5 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient as createNeonClient, SupabaseAuthAdapter } from "@neondatabase/neon-js";
+import { createAuthClient } from "@neondatabase/neon-js/auth";
 
 const NEON_AUTH_URL = import.meta.env.VITE_NEON_AUTH_URL as string | undefined;
 const NEON_DATA_API_URL = import.meta.env.VITE_NEON_DATA_API_URL as string | undefined;
@@ -33,6 +34,12 @@ const neonClient = neonConfigured
         url: NEON_DATA_API_URL!,
       },
     })
+  : null;
+
+// Native Neon Auth client for social OAuth. Keeping OAuth on the native API avoids
+// translating the Google flow through the Supabase-compatibility adapter.
+export const neonAuthClient = neonConfigured && NEON_AUTH_URL
+  ? createAuthClient(NEON_AUTH_URL)
   : null;
 
 const fallbackSupabaseClient = !neonConfigured
