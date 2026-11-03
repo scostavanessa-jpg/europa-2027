@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const { origin = "SAO", destination = "MXP", date = "2028-03-31" } = req.query;
+    const { origin = "SAO", destination = "LHR", date = "2028-03-10" } = req.query;
 
     const tokenRes = await fetch("https://test.api.amadeus.com/v1/security/oauth2/token", {
       method: "POST",
@@ -11,29 +11,16 @@ export default async function handler(req, res) {
     const tokenData = await tokenRes.json();
 
     if (!tokenData.access_token) {
-      return res.status(500).json({
-        error: "Erro ao gerar token Amadeus",
-        details: tokenData
-      });
+      return res.status(500).json({ error: "Erro ao gerar token Amadeus", details: tokenData });
     }
 
     const flightsRes = await fetch(
       `https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${origin}&destinationLocationCode=${destination}&departureDate=${date}&adults=3&max=5`,
-      {
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`
-        }
-      }
+      { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
     );
 
     const flightsData = await flightsRes.json();
-
-    if (!flightsData.data) {
-      return res.status(500).json({
-        error: "Erro ao buscar voos",
-        details: flightsData
-      });
-    }
+    if (!flightsData.data) return res.status(500).json({ error: "Erro ao buscar voos", details: flightsData });
 
     const results = flightsData.data.map(f => ({
       price: Number(f.price.total),
@@ -42,16 +29,8 @@ export default async function handler(req, res) {
       airline: f.validatingAirlineCodes?.[0] || "N/A"
     }));
 
-    return res.status(200).json({
-      success: true,
-      count: results.length,
-      data: results
-    });
-
+    return res.status(200).json({ success: true, count: results.length, data: results });
   } catch (err) {
-    return res.status(500).json({
-      error: "Erro interno",
-      message: err.message
-    });
+    return res.status(500).json({ error: "Erro interno", message: err.message });
   }
 }
