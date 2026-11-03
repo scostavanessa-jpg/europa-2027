@@ -10,6 +10,7 @@ import Grupo from "./pages/Grupo";
 import MinhaViagem from "./pages/MinhaViagem";
 import Rateio from "./pages/Rateio";
 import Planejamento from "./pages/Planejamento";
+import Projeto from "./pages/Projeto";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/grupo" element={<PrivateRoute><Grupo /></PrivateRoute>} />
           <Route path="/minha-viagem" element={<PrivateRoute><MinhaViagem /></PrivateRoute>} />
           <Route path="/rateio" element={<PrivateRoute><Rateio /></PrivateRoute>} />
+          <Route path="/projeto" element={<PrivateRoute><Projeto /></PrivateRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster richColors position="top-center" />
