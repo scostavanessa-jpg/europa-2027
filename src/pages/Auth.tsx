@@ -13,6 +13,7 @@ type Mode = "login" | "signup" | "forgot" | "reset";
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [googleBusy, setGoogleBusy] = useState(false);
   const resetQuery = new URLSearchParams(window.location.search);
   const recovery = resetQuery.get("reset") === "1" || resetQuery.has("token");
   const [mode, setMode] = useState<Mode>(recovery ? "reset" : "login");
@@ -36,6 +37,32 @@ const Auth = () => {
     });
     window.history.replaceState({}, "", "/auth");
   }, [user, loading]);
+
+  const signInGoogle = async () => {
+    setGoogleBusy(true);
+    try {
+      if (isNeonConfigured && neonAuthClient) {
+        const { error } = await neonAuthClient.signIn.social({
+          provider: "google",
+          callbackURL: `${window.location.origin}/grupo`,
+          errorCallbackURL: `${window.location.origin}/auth?error=google`,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${window.location.origin}/grupo` },
+        });
+        if (error) throw error;
+      }
+    } catch (e: any) {
+      toast.error("Não foi possível iniciar o login com Google.", {
+        description: e?.message || "Confira sua conexão e tente novamente.",
+      });
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,9 +122,15 @@ const Auth = () => {
         setMode("login");
         navigate("/auth", { replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw error;
-        navigate("/", { replace: true });
+        if (!data?.user && !data?.session) {
+          const { data: check, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) throw sessionError;
+          if (!check?.session?.user) throw new Error("O login não iniciou uma sessão. Tente entrar com Google.");
+        }
+        // A full navigation lets the auth client re-read its session before protected routes mount.
+        window.location.replace("/grupo");
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
@@ -127,7 +160,7 @@ const Auth = () => {
       ? "Enviaremos um link seguro para o seu e-mail."
       : mode === "reset"
         ? "Escolha uma senha pessoal de 8 caracteres ou mais. Sem necessidade de símbolos."
-        : "Vanessa, Camila e Danielle · nosso planejamento privado.";
+        : "Vanessa, Camila e Danielle · nosso planejamento privado. Entre com Google ou com sua senha pessoal.";
 
   return (
     <div className="min-h-screen bg-gradient-warm flex items-center justify-center px-4 py-6 sm:px-6 sm:py-10">
@@ -162,8 +195,12 @@ const Auth = () => {
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
 
           {mode === "login" && (
-            <div className="mt-5 rounded-2xl border border-gold/20 bg-secondary/45 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-              Cada viajante entra com seu próprio e-mail e senha. Não existe mais chave compartilhada.
+            <div className="mt-5">
+              <Button type="button" variant="outline" disabled={googleBusy || busy} onClick={() => void signInGoogle()} className="w-full min-h-12 rounded-full bg-card text-ink font-medium border-olive/40">
+                {googleBusy ? "Abrindo o Google…" : "Entrar com Google (sem senha)"}
+              </Button>
+              <div className="flex items-center gap-3 my-5 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>ou use sua senha pessoal</span><span className="h-px flex-1 bg-border"/></div>
+              <p className="text-xs text-muted-foreground leading-relaxed">Use a mesma conta Google que já está vinculada ao seu perfil. Não é necessário fazer outro cadastro.</p>
             </div>
           )}
 
