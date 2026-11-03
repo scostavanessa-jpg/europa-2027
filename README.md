@@ -1,1 +1,103 @@
-# europa-2027
+# Europa 2028 · Diário de bordo das amigas
+
+> Documento-base do projeto. **Nunca substituir requisitos antigos por uma interface mais simples sem registrar a alteração.**
+> Inventário reconstruído em 03/11/2026 a partir dos pedidos do projeto; cada nova implementação deve preservar as regras abaixo.
+
+## 1. Por que este projeto existe
+
+Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e Danielle: quatro semanas de intercâmbio em Liverpool e aproximadamente uma semana percorrendo cidades europeias. Não é um roteiro estático nem um portal só de decoração. Deve ser um aplicativo leve, elegante, prático, que as três realmente consigam usar no celular.
+
+**Decisões atuais (2028):**
+- Março/abril de 2028; ordem **Europa → Liverpool** é tendência, mas **Liverpool → Europa permanece alternativa**. Não marcar uma opção como definitiva antes da decisão das três.
+- Até ~5 semanas viajando, 4 semanas de curso, ~1 semana de passeio, podendo embarcar sexta à noite.
+- Considerar **30 dias corridos de férias CLT**, não presumir aprovação de fracionamento, considerar banco de horas somente se necessário e autorizado, incluir feriados no cálculo.
+- As turmas começam semanalmente às segundas-feiras, sujeitas à validação de calendário oficial da escola.
+- Vanessa deve estar em São Paulo em 13/05/2028; reservar margem para volta antes disso.
+- Ideias de rota: Milão, Tirano/Bernina, cidades suíças, Strasbourg, Bruxelas, Amsterdam, Londres e Liverpool. Não presumir viagens entre todas sem avaliar tempo e preço. Bernina é uma experiência prioritária.
+- Manter cenário com entrada e saída por aeroportos diferentes (multidestino/open-jaw) para testar custo total e evitar deslocamento de volta.
+
+## 2. Pedidos originais recuperados
+
+**Abril 2026:**
+- Dashboard, roteiro editável e mapas/GPS; comparação de transportes e logística dos trechos críticos; hospedagens, bilhetes, clima, notícias, horários Brasil/Europa, contadores.
+- Tela de **Ofertas e Cupons** com radar/buscador de voos, comparador de destinos de entrada, faixas de preço, histórico, cupons, links externos, estratégias de compra e futuras APIs.
+- Login individual para três amigas; área pessoal com cofrinho, metas e gastos; **rateio no estilo Splitwise** para gastos que pertencem ao grupo.
+- Checklist por preparação e prazos, alertas de câmbio (EUR/GBP/CHF), passagem, hospedagem; lembretes semanais e diários quando se aproximar a viagem, com WhatsApp desejado.
+- Acompanhar gastos de estudo, passeios, jiu-jitsu, Beatles e oportunidades da cidade.
+- Valor-alvo histórico de passagens para o **roteiro de 2027**: teto de referência R$ 4.500 e alerta R$ 3.800 por pessoa. **Não reutilizar como preço/alerta vigente para 2028 sem nova aprovação.**
+
+**Junho 2026 (regra crucial):**
+- **Todo gasto nasce individual; só entra no coletivo quando explicitamente marcado para compartilhar.**
+- O que é pessoal fica vinculado ao próprio usuário. O Rateio é apenas para despesas coletivas. Não somar gastos individuais nos saldos das amigas.
+
+**Setembro 2026:**
+- Controle financeiro com cronograma da agência, comprovantes de pagamentos reais, simulação de antecipações, saldo restante e planejamento de compras de libras e euros. Não inventar pagamento nem confundir previsão com pago.
+
+**Novembro 2026:**
+- Atualizar o ano para **2028** e trocar o domínio visível.
+- Preservar as duas ordens de viagem/curso.
+- Acesso mobile, sem chave compartilhada, vinculação de Vanessa como organizadora; Camila e Danielle aprovadas pelo login individual. **Não cadastrar automaticamente e-mails guardados apenas como histórico.**
+- Home com o **trem como marca d'água delicada**. Recuperar a imagem antiga exata se arquivo íntegro estiver disponível; desenho em SVG é provisório.
+- Visual premium com identidade pessoal da viagem, menos formulários, navegação leve e ações reais.
+- Rateio tipo Splitwise com divisões iguais/desiguais, acertos, moedas, histórico, filtros e saldos.
+
+## 3. Contrato funcional e técnico
+
+1. Todos os cadastros em uma conta devem ser persistentes no banco, de forma coerente ao abrir em outro aparelho; não usar `localStorage` como base de dados para informação de grupo.
+2. Dados pessoais e compartilhados têm permissões distintas: **somente o dono vê gastos e metas privados**; integrantes aprovadas podem ver o coletivo.
+3. Cadastro de despesa pessoal **não cria** registro no rateio; apenas a ação explícita e confirmada cria. Não permitir duplicatas em tentativas repetidas.
+4. Valores por moeda separados; não somar BRL, EUR, GBP e CHF como se fossem intercambiáveis; conversão exige taxa, fonte e data.
+5. Saldos de Rateio levam em conta o pagador, as parcelas por pessoa e os acertos realizados; registro de acerto não movimenta dinheiro.
+6. Gravação de despesas + parcelas é transacional; erros devem aparecer ao usuário sem salvar pela metade.
+7. Cenário não é reserva, preço de referência não é oferta real, configuração de alerta não é alerta automático rodando.
+8. Nenhuma API paga/segredo deve ser colocado no frontend; integrações com Splitwise só após OAuth/autorização e backend seguro.
+9. Não há obrigação de usar Opera, APIs pagas ou contas adicionais. Uma eventual integração externa deve trazer ganho real e permitir exportação dos dados do portal.
+10. Nunca anunciar login/testes end-to-end como concluídos somente porque Vercel publicou `READY`; validar ações no celular e banco.
+
+## 4. Status em 03/11/2026
+
+| Módulo | Estado observado | Próxima validação |
+|---|---|---|
+| Login individual/organizadora | Implementado; histórico recente de falhas | Testar sessão real no Android, reconexão, aprovação de Camila/Danielle |
+| Página inicial e trem | Novo layout + SVG provisório | Recuperar imagem antiga autêntica e validar legibilidade |
+| Calendário/férias | Dois cenários e comparações | Revisar feriados e calendário Kaplan com fontes oficiais |
+| Roteiro/hospedagens | Editáveis com banco | Testar CRUD simultâneo nas três contas |
+| Cofrinho/metas | Banco | Testar privacidade e totais |
+| Gastos pessoais | Novo módulo `personal_expenses` | Testar CRUD privado e divisão sob confirmação |
+| Rateio | Despesas, divisões iguais/valor/% e acertos | Testar saldo, sincronização e permissões entre contas |
+| Passagens/radar | Histórico compartilhado `flight_price_history` | Testar entrada e links; busca automática ainda não existe |
+| Cupons | Lista compartilhada `travel_coupons` | Verificar validade e confiabilidade de cada cupom |
+| Câmbio/alertas | Preferências cadastradas | Implementar notificações reais verificadas |
+| Clima/notícias/fusos | Conteúdo de apoio | Validar dados atuais e evitar conteúdo estático incorreto |
+| Checklist | Banco | Testar marcações e separação por usuária |
+| Agência/comprovantes | Pendente | Conciliar cronograma e pagamentos reais, com comprovantes |
+| Chat compartilhado/WhatsApp | Pendente | Definir canal e permissões; nunca alegar entrega sem conexão |
+
+## 5. Referências de mercado verificadas
+
+- [Wanderlog](https://wanderlog.com/): roteiro colaborativo, mapa, reservas e checklist.
+- [Splitwise](https://dev.splitwise.com/): API oficial para grupos, despesas, saldos e acertos. Possibilidade futura de OAuth, sujeita às condições de uso e credenciais; **não conectada**.
+- [Tricount](https://www.tricount.com/features): divisões multimoeda, recibos, modo offline, importação de Splitwise; alternativa externa.
+- [TravelSpend](https://travel-spend.com/): orçamento, categorias, países, conversão e trabalho offline.
+- [TripIt](https://www.tripit.com/): consolidação de reservas/documentos.
+- [Google Flights](https://www.google.com/travel/flights/saves): rastreamento gratuito de voos e alertas reais via Google (externo).
+- [Wise](https://wise.com/us/tools/exchange-rate-alerts): alertas de câmbio (externo).
+
+**Decisão recomendada:** manter este portal como fonte única do planejamento, aprender com as melhores experiências de mercado e integrar somente serviços que efetivamente melhorarem o trabalho das três.
+
+## 6. Critérios de entrega
+
+Para cada mudança:
+- Verificar se algum pedido antigo foi descartado ou contradito.
+- Construir interface, persistência e permissões com estados vazios/erro.
+- Testar caminho crítico: entrar → cadastrar → ver em outra conta → editar → atualizar → confirmar persistência.
+- Conferir build, URL `https://europa-2028.vercel.app/`, rotas profundas e celular.
+- Atualizar este documento e a página **Nossa essência** (`/projeto`).
+- **Não inventar** cotações, tarifas, horários, pagamentos, API conectada ou notificações já enviadas.
+
+## 7. Arquitetura
+
+- GitHub: `scostavanessa-jpg/europa-2027` (nome legado; produto Europa 2028).
+- Vite + React + TypeScript + Tailwind + React Router, deploy Vercel.
+- Neon Auth + Neon Data API + Postgres com RLS, tabelas `participants`, `profiles`, `user_roles`, `personal_expenses`, `expenses`, `expense_shares`, `settlements`, `savings_goals`, `savings_entries`, `flight_price_history`, `travel_coupons`, `accommodations`, `route_items`, `alerts` e `checklist_items`.
+- As três viajantes têm acesso individual; Vanessa é organizadora. Autorização sensível é conferida no banco, não só por botão no frontend.
