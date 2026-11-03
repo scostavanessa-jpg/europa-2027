@@ -65,7 +65,7 @@ export default function MinhaViagem() {
   const saveGoal=async(patch:{target_total_brl?:number;monthly_target_brl?:number})=>{
     if(!participant?.id)return;
     try{
-      if(goal){const {data,error}=await supabase.from("savings_goals").update(patch).eq("id",goal.id).select("id,target_total_brl,monthly_target_brl,notes").single();if(error)throw error;setGoal(data as SavingGoal);}
+      if(goal?.id){const {data,error}=await supabase.from("savings_goals").update(patch).eq("id",goal.id).select("id,target_total_brl,monthly_target_brl,notes").single();if(error)throw error;setGoal(data as SavingGoal);}
       else{const {data,error}=await supabase.from("savings_goals").insert({participant_id:participant.id,target_total_brl:patch.target_total_brl??targetTotal,monthly_target_brl:patch.monthly_target_brl??monthlyTarget}).select("id,target_total_brl,monthly_target_brl,notes").single();if(error)throw error;setGoal(data as SavingGoal);}
     }catch(err:any){toast.error("Não consegui salvar a meta.",{description:err?.message});}
   };
