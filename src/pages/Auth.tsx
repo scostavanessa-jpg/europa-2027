@@ -129,8 +129,9 @@ const Auth = () => {
           if (sessionError) throw sessionError;
           if (!check?.session?.user) throw new Error("O login não iniciou uma sessão. Tente entrar com Google.");
         }
-        // A full navigation lets the auth client re-read its session before protected routes mount.
-        window.location.replace("/grupo");
+        // Keep the authenticated session in this React application during navigation.
+        // A full-page reload immediately after sign-in can lose third-party cookies on mobile.
+        navigate("/grupo", { replace: true });
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
