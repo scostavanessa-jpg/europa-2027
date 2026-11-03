@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Home, MapPinned, Sparkles, UserRound, WalletCards } from "lucide-react";
+import { Home, MapPinned, ReceiptText, Sparkles, UserRound } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 
 const links = [
@@ -10,13 +10,12 @@ const links = [
   { href: "#gastos", label: "Gastos" },
   { href: "#hospedagem", label: "Estadias" },
   { href: "#checklist", label: "Checklist" },
-  { href: "#combinados", label: "Grupo" },
 ];
 
 const mobileItems = [
   { type: "anchor" as const, href: "#topo", label: "Início", icon: Home },
-  { type: "anchor" as const, href: "#roteiro", label: "Roteiro", icon: MapPinned },
-  { type: "anchor" as const, href: "#gastos", label: "Gastos", icon: WalletCards },
+  { type: "route" as const, href: "/planejar", label: "Planejar", icon: MapPinned },
+  { type: "route" as const, href: "/rateio", label: "Rateio", icon: ReceiptText },
   { type: "route" as const, href: "/ofertas", label: "Ofertas", icon: Sparkles },
   { type: "route" as const, href: "/minha-viagem", label: "Minha", icon: UserRound },
 ];
@@ -30,6 +29,11 @@ export const Nav = () => (
         </a>
 
         <ul className="hidden lg:flex items-center gap-1 text-sm">
+          <li>
+            <Link to="/planejar" className="px-3 py-2 rounded-full bg-olive text-primary-foreground hover:bg-olive/90 transition-colors inline-flex items-center gap-1">
+              <MapPinned className="h-3.5 w-3.5" /> Planejar
+            </Link>
+          </li>
           {links.map((l) => (
             <li key={l.href}>
               <a href={l.href} className="px-3 py-2 rounded-full text-foreground/70 hover:text-olive hover:bg-secondary/60 transition-colors">
@@ -46,7 +50,7 @@ export const Nav = () => (
         </ul>
 
         <div className="lg:hidden flex items-center gap-3">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">mar · abr</span>
+          <Link to="/planejar" className="text-[10px] uppercase tracking-[0.16em] rounded-full bg-olive text-primary-foreground px-3 py-2">Planejar</Link>
           <UserMenu />
         </div>
       </div>
