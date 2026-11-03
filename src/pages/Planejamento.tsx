@@ -132,9 +132,14 @@ export default function Planejamento() {
   };
 
   const updateRoute = async (item: RouteItem, patch: Partial<RouteItem>) => {
-    const { data, error } = await supabase.from("route_items").update(patch).eq("id", item.id).select("id,city,country,starts_at,ends_at,sort_order,priority,notes").single();
-    if (error) throw error;
-    setRoute((current) => current.map((x) => x.id === item.id ? data as RouteItem : x).sort((a,b) => a.sort_order-b.sort_order));
+    try {
+      const { data, error } = await supabase.from("route_items").update(patch).eq("id", item.id).select("id,city,country,starts_at,ends_at,sort_order,priority,notes").single();
+      if (error) throw error;
+      setRoute((current) => current.map((x) => x.id === item.id ? data as RouteItem : x).sort((a,b) => a.sort_order-b.sort_order));
+    } catch (e: any) {
+      toast.error("Não foi possível salvar a edição.", { description: e?.message });
+      void load();
+    }
   };
 
   const move = async (index: number, direction: -1 | 1) => {
@@ -147,11 +152,13 @@ export default function Planejamento() {
     next.sort((x,y) => x.sort_order-y.sort_order);
     setRoute(next);
     try {
-      await Promise.all([
+      const [first, second] = await Promise.all([
         supabase.from("route_items").update({ sort_order: b.sort_order }).eq("id", a.id),
         supabase.from("route_items").update({ sort_order: a.sort_order }).eq("id", b.id),
       ]);
-    } catch {
+      if (first.error || second.error) throw first.error || second.error;
+    } catch (e: any) {
+      toast.error("Não foi possível reordenar o roteiro.", { description: e?.message });
       void load();
     }
   };
@@ -198,7 +205,14 @@ export default function Planejamento() {
     setAccommodations((current) => current.filter((x) => x.id !== id));
   };
 
-  const totalEstimated = useMemo(() => accommodations.reduce((sum, item) => sum + Number(item.estimated_cost || 0), 0), [accommodations]);
+  const totalEstimated = useMemo(() => {
+    const totals: Record<string,number> = {};
+    for (const item of accommodations) {
+      const currency = item.currency || "EUR";
+      totals[currency] = (totals[currency] || 0) + Number(item.estimated_cost || 0);
+    }
+    return Object.entries(totals).map(([currency,value]) => `${currency} ${value.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}`).join(" · ") || "—";
+  }, [accommodations]);
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
@@ -217,7 +231,7 @@ export default function Planejamento() {
         {loading ? (
           <div className="rounded-3xl border border-border/60 bg-card p-10 grid place-items-center"><Loader2 className="h-7 w-7 animate-spin text-olive"/></div>
         ) : (
-          <Tabs defaultValue="roteiro">
+          <Tabs defaultValue={window.location.hash === "#hospedagens" ? "hospedagens" : "roteiro"}>
             <TabsList className="w-full justify-start overflow-x-auto bg-secondary/60">
               <TabsTrigger value="roteiro"><MapPinned className="h-4 w-4 mr-1.5"/>Roteiro</TabsTrigger>
               <TabsTrigger value="hospedagens"><BedDouble className="h-4 w-4 mr-1.5"/>Hospedagens</TabsTrigger>
@@ -280,8 +294,8 @@ export default function Planejamento() {
                 </form>
               </div>
 
-              <div className="flex items-center justify-between gap-3"><h2 className="font-display text-2xl text-ink">Opções salvas</h2><span className="text-xs text-muted-foreground">Estimado cadastrado: {new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(totalEstimated)}*</span></div>
-              <p className="text-[11px] text-muted-foreground -mt-3">*Soma nominal apenas como referência; há moedas diferentes.</p>
+              <div className="flex items-center justify-between gap-3"><h2 className="font-display text-2xl text-ink">Opções salvas</h2><span className="text-xs text-muted-foreground">Estimado: {totalEstimated}</span></div>
+              
               <div className="grid md:grid-cols-2 gap-3">
                 {accommodations.length===0 ? <div className="md:col-span-2 rounded-3xl border border-border/60 bg-card p-8 text-center text-sm text-muted-foreground">Nenhuma hospedagem compartilhada salva ainda.</div> : accommodations.map((item)=><div key={item.id} className="rounded-3xl border border-border/60 bg-card p-5 shadow-card">
                   <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] uppercase tracking-wider text-olive">{item.city} · {item.status || "pendente"}</div><h3 className="font-display text-2xl text-ink mt-1">{item.name || "Acomodação sem nome"}</h3></div><Button size="icon" variant="ghost" onClick={()=>void deleteStay(item.id)}><Trash2 className="h-4 w-4"/></Button></div>
