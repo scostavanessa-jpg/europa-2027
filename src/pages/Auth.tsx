@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, neonAuthClient, isNeonConfigured } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ type Mode = "login" | "signup" | "forgot" | "reset";
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const recovery = new URLSearchParams(window.location.search).get("reset") === "1";
+  const resetQuery = new URLSearchParams(window.location.search);
+  const recovery = resetQuery.get("reset") === "1" || resetQuery.has("token");
   const [mode, setMode] = useState<Mode>(recovery ? "reset" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +43,7 @@ const Auth = () => {
     try {
       if (mode === "signup") {
         if (!name) throw new Error("Escolha seu nome.");
-        if (password.length < 6) throw new Error("A senha precisa ter pelo menos 6 caracteres.");
+        if (password.length < 8) throw new Error("A senha precisa ter pelo menos 8 caracteres.");
         if (password !== confirm) throw new Error("As senhas não conferem.");
 
         const { error } = await supabase.auth.signUp({
@@ -62,19 +63,37 @@ const Auth = () => {
         setPassword("");
         setConfirm("");
       } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/auth?reset=1`,
-        });
-        if (error) throw error;
+        if (isNeonConfigured && neonAuthClient) {
+          const { error } = await neonAuthClient.requestPasswordReset({
+            email: email.trim(),
+            redirectTo: `${window.location.origin}/auth?reset=1`,
+          });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+            redirectTo: `${window.location.origin}/auth?reset=1`,
+          });
+          if (error) throw error;
+        }
         toast.success("Link enviado", { description: "Confira seu e-mail para criar uma nova senha." });
         setMode("login");
       } else if (mode === "reset") {
-        if (password.length < 6) throw new Error("A senha precisa ter pelo menos 6 caracteres.");
+        if (password.length < 8) throw new Error("Escolha uma senha com pelo menos 8 caracteres.");
         if (password !== confirm) throw new Error("As senhas não conferem.");
-        const { error } = await supabase.auth.updateUser({ password });
-        if (error) throw error;
-        toast.success("Senha atualizada");
-        navigate("/", { replace: true });
+        if (isNeonConfigured && neonAuthClient) {
+          const token = new URLSearchParams(window.location.search).get("token");
+          if (!token) throw new Error("O link de recuperação está incompleto. Solicite outro pelo botão ‘Esqueci minha senha’.");
+          const { error } = await neonAuthClient.resetPassword({ newPassword: password, token });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.updateUser({ password });
+          if (error) throw error;
+        }
+        toast.success("Senha atualizada. Entre com sua nova senha.");
+        setPassword("");
+        setConfirm("");
+        setMode("login");
+        navigate("/auth", { replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
@@ -82,6 +101,12 @@ const Auth = () => {
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
+      const resetError = mode === "reset" && /token|expired|invalid.*link|expiration/i.test(msg);
+      if (resetError) {
+        toast.error("Link vencido ou inválido.", { description: "Use ‘Esqueci minha senha’ para receber um novo link." });
+        setMode("forgot");
+        return;
+      }
       if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
         toast.error("Esse e-mail já tem uma conta.", {
           description: "Use ‘Esqueci minha senha’ para recuperar sua senha pessoal.",
@@ -101,7 +126,7 @@ const Auth = () => {
     : mode === "forgot"
       ? "Enviaremos um link seguro para o seu e-mail."
       : mode === "reset"
-        ? "Escolha uma nova senha para continuar."
+        ? "Escolha uma senha pessoal de 8 caracteres ou mais. Sem necessidade de símbolos."
         : "Vanessa, Camila e Danielle · nosso planejamento privado.";
 
   return (
@@ -165,14 +190,18 @@ const Auth = () => {
             {mode !== "forgot" && (
               <div className="space-y-1.5">
                 <Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Sua senha"}</Label>
-                <Input id="password" className="h-12 text-base rounded-xl" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input id="password" className="h-12 text-base rounded-xl" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
+            )}
+
+            {(mode === "signup" || mode === "reset") && (
+              <p className="text-xs text-muted-foreground">Basta ter 8 caracteres ou mais. Você não precisa de uma chave compartilhada.</p>
             )}
 
             {(mode === "signup" || mode === "reset") && (
               <div className="space-y-1.5">
                 <Label htmlFor="confirm">Confirmar senha</Label>
-                <Input id="confirm" className="h-12 text-base rounded-xl" type="password" autoComplete="new-password" minLength={6} required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+                <Input id="confirm" className="h-12 text-base rounded-xl" type="password" autoComplete="new-password" minLength={8} required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
               </div>
             )}
 
