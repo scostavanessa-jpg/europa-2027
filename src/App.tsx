@@ -11,6 +11,7 @@ import MinhaViagem from "./pages/MinhaViagem";
 import Rateio from "./pages/Rateio";
 import Planejamento from "./pages/Planejamento";
 import Projeto from "./pages/Projeto";
+import Diagnostico from "./pages/Diagnostico";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -62,6 +63,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/diagnostico" element={<Diagnostico />} />
           <Route path="/" element={<PrivateRoute><Index /></PrivateRoute>} />
           <Route path="/planejar" element={<PrivateRoute><Planejamento /></PrivateRoute>} />
           <Route path="/ofertas" element={<PrivateRoute><Ofertas /></PrivateRoute>} />
