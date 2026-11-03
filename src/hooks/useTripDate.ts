@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 const KEY = "viagem-amigas:trip-date";
-const DEFAULT_ISO = "2028-03-10T22:00:00-03:00";
-const LEGACY_DEFAULTS = new Set(["2028-03-31T22:00:00-03:00"]);
+const DEFAULT_ISO = "2028-03-17T22:00:00-03:00";
+const LEGACY_DEFAULTS = new Set(["2028-03-31T22:00:00-03:00", "2028-03-10T22:00:00-03:00"]);
 let listeners: Array<() => void> = [];
 let current = DEFAULT_ISO;
 let loaded = false;
