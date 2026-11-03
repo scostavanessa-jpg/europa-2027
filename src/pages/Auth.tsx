@@ -252,6 +252,11 @@ const Auth = () => {
               <Mail className="h-4 w-4" /> Esqueci minha senha
             </button>
           )}
+          {mode === "login" && (
+            <Link to="/diagnostico" className="mt-2 min-h-10 w-full inline-flex items-center justify-center text-xs font-medium underline underline-offset-4 text-muted-foreground hover:text-olive">
+              Não consigo entrar · Diagnosticar meu acesso
+            </Link>
+          )}
           {(mode === "forgot" || mode === "reset") && (
             <button type="button" onClick={() => setMode("login")} className="mt-4 min-h-11 w-full text-sm text-olive hover:underline">
               Voltar para entrar
