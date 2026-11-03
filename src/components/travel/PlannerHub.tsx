@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BedDouble, MapPinned, PiggyBank, ReceiptText, Sparkles, UsersRound } from "lucide-react";
+import { BedDouble, BookOpenCheck, MapPinned, PiggyBank, ReceiptText, Sparkles, UsersRound } from "lucide-react";
 
 const actions = [
   {
@@ -12,7 +12,7 @@ const actions = [
   {
     to: "/minha-viagem",
     title: "Meu cofrinho",
-    text: "Cofrinho, prioridades e preferências pessoais.",
+    text: "Cofrinho, gastos privados, prioridades e metas.",
     icon: PiggyBank,
   },
   {
@@ -38,6 +38,12 @@ const actions = [
     title: "Nossa turma",
     text: "Ver seu perfil e os atalhos do planejamento privado.",
     icon: UsersRound,
+  },
+  {
+    to: "/projeto",
+    title: "Nossa essência",
+    text: "Memória dos pedidos originais, prioridades e melhorias.",
+    icon: BookOpenCheck,
   },
 ];
 
