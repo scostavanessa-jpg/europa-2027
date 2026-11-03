@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useChecklist = (_key: string) => {
   const { user } = useAuth();
@@ -64,8 +65,9 @@ export const useChecklist = (_key: string) => {
         if (error) throw error;
         setExisting((current) => new Set(current).add(itemId));
       }
-    } catch {
+    } catch (e: any) {
       setChecked((current) => ({ ...current, [key]: Boolean(previous) }));
+      toast.error("Não foi possível salvar o checklist.", { description: e?.message });
     }
   };
 
