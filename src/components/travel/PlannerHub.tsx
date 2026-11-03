@@ -4,26 +4,26 @@ import { BedDouble, MapPinned, PiggyBank, ReceiptText, Sparkles, UsersRound } fr
 const actions = [
   {
     to: "/planejar",
-    title: "Planejamento compartilhado",
+    title: "Nosso roteiro",
     text: "Editar cidades, ordem do roteiro e hospedagens que todas enxergam.",
     icon: MapPinned,
     featured: true,
   },
   {
     to: "/minha-viagem",
-    title: "Minha viagem",
+    title: "Meu cofrinho",
     text: "Cofrinho, prioridades e preferências pessoais.",
     icon: PiggyBank,
   },
   {
     to: "/rateio",
-    title: "Rateio",
+    title: "Dividir despesas",
     text: "Registrar despesas e calcular quem deve para quem.",
     icon: ReceiptText,
   },
   {
     to: "/ofertas",
-    title: "Ofertas",
+    title: "Achados da viagem",
     text: "Guardar e comparar oportunidades de passagem e viagem.",
     icon: Sparkles,
   },
@@ -35,7 +35,7 @@ const actions = [
   },
   {
     to: "/grupo",
-    title: "Grupo",
+    title: "Nossa turma",
     text: "Ver seu perfil e os atalhos do planejamento privado.",
     icon: UsersRound,
   },
@@ -47,9 +47,9 @@ export const PlannerHub = () => (
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div>
           <p className="text-xs tracking-[0.3em] uppercase text-olive mb-2">Painel da viagem</p>
-          <h2 className="font-display text-3xl md:text-4xl text-ink">Aqui vocês fazem, não só olham.</h2>
+          <h2 className="font-display text-3xl md:text-4xl text-ink">Um plano, três amigas.</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            Os cards abaixo abrem as áreas editáveis. O planejamento compartilhado fica salvo no banco para Vanessa, Camila e Danielle enxergarem a mesma informação.
+            Escolha por onde começar. Roteiro, gastos, cofrinho e decisões ficam organizados em um único lugar.
           </p>
         </div>
       </div>
