@@ -2,51 +2,51 @@ import { CalendarDays, CheckCircle2, GraduationCap, Plane, TriangleAlert } from 
 
 const scenarios = [
   {
-    title: "Cenário A · melhor equilíbrio",
-    badge: "Recomendado",
+    title: "Cenário A · curso primeiro",
+    badge: "Melhor opção",
+    flight: "Sex · 10/03 à noite",
+    tour: "08/04 → 16/04",
+    course: "13/03 → 07/04",
+    returnDate: "Dom · 16/04",
+    vacation: "30 dias: 13/03 → 11/04",
+    bank: "Banco estimado: 12 e 13/04",
+    holidays: "As 4 semanas de curso terminam antes da Páscoa britânica. Good Friday (14/04) vira parte do turismo, e Tiradentes + 1º de maio ficam preservados no Brasil.",
+    tone: "good",
+  },
+  {
+    title: "Cenário B · turismo primeiro",
+    badge: "Boa alternativa",
     flight: "Sex · 10/03 à noite",
     tour: "11/03 → 19/03",
     course: "20/03 → 14/04",
     returnDate: "15 ou 16/04",
     vacation: "30 dias: 13/03 → 11/04",
     bank: "Banco estimado: 12 e 13/04",
-    holidays: "Kaplan: 14/04 é Good Friday; 17/04 já fica fora do curso. Tiradentes e 1º de maio ficam preservados no Brasil.",
-    tone: "good",
-  },
-  {
-    title: "Cenário B · planejamento anterior",
-    badge: "Boa alternativa",
-    flight: "Sex · 17/03 à noite",
-    tour: "18/03 → 26/03",
-    course: "27/03 → 21/04",
-    returnDate: "23/04",
-    vacation: "30 dias: 20/03 → 18/04",
-    bank: "Banco estimado: 19 e 20/04; 21/04 é Tiradentes no Brasil",
-    holidays: "O curso atravessa Good Friday (14/04) e Easter Monday (17/04), quando a Kaplan pode estar fechada.",
+    holidays: "Funciona bem na CLT, mas Good Friday (14/04) cai no último dia do curso e a Kaplan informa que não compensa aula de feriado público.",
     tone: "mid",
   },
   {
-    title: "Cenário C · início em abril",
-    badge: "Menos eficiente",
-    flight: "Sex · 24/03 à noite",
-    tour: "25/03 → 02/04",
-    course: "03/04 → 28/04",
-    returnDate: "30/04",
-    vacation: "30 dias: 27/03 → 25/04",
-    bank: "Banco estimado: 26, 27 e 28/04",
-    holidays: "Good Friday e Easter Monday caem durante o curso; Tiradentes fica dentro das férias.",
-    tone: "warn",
+    title: "Cenário C · saída 17/03",
+    badge: "Ainda viável",
+    flight: "Sex · 17/03 à noite",
+    tour: "15/04 → 23/04",
+    course: "20/03 → 14/04",
+    returnDate: "Dom · 23/04",
+    vacation: "30 dias: 20/03 → 18/04",
+    bank: "Banco estimado: 19 e 20/04; 21/04 é Tiradentes",
+    holidays: "Também perde a aula de Good Friday. Em compensação, Tiradentes ajuda a fechar o bloco de turismo sem consumir mais férias.",
+    tone: "mid",
   },
   {
-    title: "Cenário D · mais tarde",
-    badge: "Evitar",
-    flight: "Sex · 31/03 à noite",
-    tour: "01/04 → 09/04",
-    course: "10/04 → 05/05",
-    returnDate: "07/05",
-    vacation: "30 dias: 03/04 → 02/05",
-    bank: "Banco estimado: 03, 04 e 05/05",
-    holidays: "O curso pega 14/04, 17/04 e 01/05 no Reino Unido; Tiradentes e 1º de maio também ficam engolidos pelas férias no Brasil.",
+    title: "Cenário D · saída 24/03",
+    badge: "Menos eficiente",
+    flight: "Sex · 24/03 à noite",
+    tour: "22/04 → 30/04",
+    course: "27/03 → 21/04",
+    returnDate: "Dom · 30/04",
+    vacation: "30 dias: 27/03 → 25/04",
+    bank: "Banco estimado: 26, 27 e 28/04",
+    holidays: "Good Friday (14/04) e Easter Monday (17/04) caem dentro do curso. Exige mais banco e entrega menos dias efetivos de aula.",
     tone: "warn",
   },
 ];
@@ -64,7 +64,7 @@ export const DateScenarios = () => (
       <p className="text-xs tracking-[0.3em] uppercase text-olive mb-3">Quando ir</p>
       <h2 className="font-display text-4xl md:text-5xl text-ink">Datas que trabalham a favor da viagem</h2>
       <p className="mt-4 text-muted-foreground leading-relaxed">
-        A comparação usa 4 semanas de Kaplan Liverpool + 9 dias de turismo antes das aulas, saída preferencial na sexta à noite e 30 dias corridos de férias. Banco de horas é uma projeção e depende da aprovação da empresa.
+        A comparação usa 4 semanas de Kaplan Liverpool + aproximadamente 1 semana de mochilão, saída preferencial na sexta à noite e 30 dias corridos de férias. O cenário recomendado coloca o curso primeiro para não perder aula com os feriados britânicos de Páscoa.
       </p>
     </div>
 
@@ -83,8 +83,8 @@ export const DateScenarios = () => (
 
           <div className="grid sm:grid-cols-2 gap-3 mt-5 text-sm">
             <div className="rounded-2xl bg-secondary/50 p-4"><Plane className="h-4 w-4 text-olive mb-2" /><strong className="block text-ink">Embarque</strong><span className="text-muted-foreground">{s.flight}</span></div>
-            <div className="rounded-2xl bg-secondary/50 p-4"><CalendarDays className="h-4 w-4 text-olive mb-2" /><strong className="block text-ink">Passeio</strong><span className="text-muted-foreground">{s.tour}</span></div>
             <div className="rounded-2xl bg-secondary/50 p-4"><GraduationCap className="h-4 w-4 text-olive mb-2" /><strong className="block text-ink">Curso</strong><span className="text-muted-foreground">{s.course}</span></div>
+            <div className="rounded-2xl bg-secondary/50 p-4"><CalendarDays className="h-4 w-4 text-olive mb-2" /><strong className="block text-ink">Mochilão</strong><span className="text-muted-foreground">{s.tour}</span></div>
             <div className="rounded-2xl bg-secondary/50 p-4"><Plane className="h-4 w-4 text-olive mb-2" /><strong className="block text-ink">Volta</strong><span className="text-muted-foreground">{s.returnDate}</span></div>
           </div>
 
@@ -98,7 +98,7 @@ export const DateScenarios = () => (
     </div>
 
     <div className="mt-5 rounded-2xl border border-gold/30 bg-card p-4 sm:p-5 text-sm text-foreground/75 leading-relaxed">
-      <strong className="text-ink">Ponto de validação:</strong> a Kaplan informa que cursos flexíveis começam às segundas; quando a segunda é feriado público, começam na terça. A escola fecha em feriados públicos e a política vigente informa que não há compensação das aulas desses dias. Antes de comprar, vamos validar o calendário 2028 diretamente com a Kaplan/agência.
+      <strong className="text-ink">Ponto de validação:</strong> a Kaplan informa atualmente que cursos flexíveis começam às segundas (ou terça quando a segunda é feriado), fecha em feriados públicos e não compensa essas aulas. Antes de emitir passagem ou fechar a turma, vamos reconfirmar o calendário 2028 com a Kaplan/agência e a aprovação das férias/banco com a empresa.
     </div>
   </section>
 );
