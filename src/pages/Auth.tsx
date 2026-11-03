@@ -55,8 +55,8 @@ const Auth = () => {
         });
         if (error) throw error;
 
-        toast.success("Acesso criado", {
-          description: "Da próxima vez, entre somente com seu e-mail e sua senha pessoal.",
+        toast.success("Cadastro registrado", {
+          description: "Confira a confirmação de e-mail. O vínculo com Camila ou Danielle será aprovado pela organizadora antes de liberar a viagem.",
         });
         setMode("login");
         setPassword("");
@@ -97,7 +97,7 @@ const Auth = () => {
   const isEntry = mode === "login" || mode === "signup";
   const title = mode === "signup" ? "Primeiro acesso" : mode === "forgot" ? "Recuperar senha" : mode === "reset" ? "Criar nova senha" : "Entrar na viagem";
   const subtitle = mode === "signup"
-    ? "Escolha seu nome e crie seu acesso com e-mail e uma senha pessoal."
+    ? "Escolha seu nome e crie sua senha pessoal. Depois confirme o e-mail; a organizadora autoriza seu perfil."
     : mode === "forgot"
       ? "Enviaremos um link seguro para o seu e-mail."
       : mode === "reset"
