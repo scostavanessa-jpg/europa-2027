@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, LockKeyhole, Mail } from "lucide-react";
+import { ArrowLeft, LockKeyhole, Mail } from "lucide-react";
 
 type Mode = "login" | "signup" | "forgot" | "reset";
 
@@ -19,7 +19,6 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [name, setName] = useState("");
-  const [accessKey, setAccessKey] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -31,8 +30,8 @@ const Auth = () => {
     const oauthError = params.get("error") || params.get("oauth_error");
     if (!oauthError || user || loading) return;
 
-    toast.info("O acesso agora usa sua senha pessoal.", {
-      description: "Se você já entrou com Google antes, use ‘Esqueci minha senha’ uma vez para criar sua senha.",
+    toast.info("O acesso usa sua senha pessoal.", {
+      description: "Se você já entrou antes, use ‘Esqueci minha senha’ para recuperar o acesso.",
     });
     window.history.replaceState({}, "", "/auth");
   }, [user, loading]);
@@ -42,33 +41,26 @@ const Auth = () => {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (!name) throw new Error("Escolha seu nome.");
         if (password.length < 6) throw new Error("A senha precisa ter pelo menos 6 caracteres.");
         if (password !== confirm) throw new Error("As senhas não conferem.");
-
-        const inviteRes = await fetch("/api/invite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessKey: accessKey.trim() }),
-        });
-        const invite = await inviteRes.json().catch(() => ({}));
-        if (!inviteRes.ok) throw new Error(invite?.error || "Não foi possível validar a chave da viagem.");
 
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: name.trim(), name: name.trim() },
+            data: { full_name: name, name },
           },
         });
         if (error) throw error;
-        toast.success("Primeiro acesso criado", {
-          description: "Seu acesso está pronto. Depois, você entra somente com e-mail e sua senha pessoal.",
+
+        toast.success("Acesso criado", {
+          description: "Da próxima vez, entre somente com seu e-mail e sua senha pessoal.",
         });
         setMode("login");
         setPassword("");
         setConfirm("");
-        setAccessKey("");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: `${window.location.origin}/auth?reset=1`,
@@ -92,7 +84,7 @@ const Auth = () => {
       const msg = err?.message || "Não foi possível concluir agora.";
       if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
         toast.error("Esse e-mail já tem uma conta.", {
-          description: "Use ‘Esqueci minha senha’ para criar ou recuperar sua senha pessoal.",
+          description: "Use ‘Esqueci minha senha’ para recuperar sua senha pessoal.",
         });
       } else {
         toast.error(msg.includes("Invalid login") ? "E-mail ou senha inválidos." : msg);
@@ -105,7 +97,7 @@ const Auth = () => {
   const isEntry = mode === "login" || mode === "signup";
   const title = mode === "signup" ? "Primeiro acesso" : mode === "forgot" ? "Recuperar senha" : mode === "reset" ? "Criar nova senha" : "Entrar na viagem";
   const subtitle = mode === "signup"
-    ? "Use a chave da viagem uma única vez e crie sua senha pessoal."
+    ? "Escolha seu nome e crie seu acesso com e-mail e uma senha pessoal."
     : mode === "forgot"
       ? "Enviaremos um link seguro para o seu e-mail."
       : mode === "reset"
@@ -132,18 +124,10 @@ const Auth = () => {
 
           {isEntry && (
             <div className="grid grid-cols-2 gap-1 rounded-2xl bg-secondary/70 p-1 mb-6" role="tablist" aria-label="Tipo de acesso">
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "login" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}
-              >
+              <button type="button" onClick={() => setMode("login")} className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "login" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}>
                 Entrar
               </button>
-              <button
-                type="button"
-                onClick={() => setMode("signup")}
-                className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "signup" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}
-              >
+              <button type="button" onClick={() => setMode("signup")} className={`min-h-11 rounded-xl text-sm font-medium transition-colors ${mode === "signup" ? "bg-card text-ink shadow-sm" : "text-muted-foreground"}`}>
                 Primeiro acesso
               </button>
             </div>
@@ -154,15 +138,20 @@ const Auth = () => {
 
           {mode === "login" && (
             <div className="mt-5 rounded-2xl border border-gold/20 bg-secondary/45 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-              Cada viajante entra com seu próprio e-mail e senha. No primeiro acesso, use a chave da viagem para criar sua conta.
+              Cada viajante entra com seu próprio e-mail e senha. Não existe mais chave compartilhada.
             </div>
           )}
 
           <form onSubmit={submit} className="mt-7 space-y-4">
             {mode === "signup" && (
               <div className="space-y-1.5">
-                <Label htmlFor="name">Seu nome</Label>
-                <Input id="name" className="h-12 text-base rounded-xl" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Vanessa, Camila ou Danielle" />
+                <Label htmlFor="name">Quem é você?</Label>
+                <select id="name" className="h-12 w-full rounded-xl border border-input bg-background px-3 text-base" required value={name} onChange={(e) => setName(e.target.value)}>
+                  <option value="">Selecione</option>
+                  <option value="Vanessa">Vanessa</option>
+                  <option value="Camila">Camila</option>
+                  <option value="Danielle">Danielle</option>
+                </select>
               </div>
             )}
 
@@ -170,17 +159,6 @@ const Auth = () => {
               <div className="space-y-1.5">
                 <Label htmlFor="email">E-mail</Label>
                 <Input id="email" className="h-12 text-base rounded-xl" type="email" autoComplete="email" inputMode="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
-              </div>
-            )}
-
-            {mode === "signup" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="accessKey">Chave da viagem</Label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-olive" />
-                  <Input id="accessKey" className="h-12 text-base rounded-xl pl-10" type="password" autoComplete="off" required value={accessKey} onChange={(e) => setAccessKey(e.target.value)} placeholder="Chave compartilhada" />
-                </div>
-                <p className="text-xs text-muted-foreground">Você usa essa chave só para criar seu acesso. Depois, entra com seu e-mail e sua própria senha.</p>
               </div>
             )}
 
