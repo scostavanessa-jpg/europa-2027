@@ -89,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let active = true;
     let currentRequest = 0;
+    let authChangedSinceInitialRequest = false;
     const applySession = async (s: Session | null) => {
       const request = ++currentRequest;
       if (!active) return;
@@ -112,13 +113,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (active && currentRequest === request) setLoading(false);
       }
     };
-    const { data: sub } = supabase.auth.onAuthStateChange((_event: unknown, s: Session | null) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event: unknown, s: Session | null) => {
+      if (event !== "INITIAL_SESSION") authChangedSinceInitialRequest = true;
       void applySession(s);
     });
     supabase.auth.getSession()
       .then(({ data, error }: any) => {
         if (error) throw error;
-        if (active) void applySession(data?.session ?? null);
+        // Do not let an older initial session read overwrite a newer successful sign-in.
+        if (active && !authChangedSinceInitialRequest) void applySession(data?.session ?? null);
       })
       .catch((e: any) => {
         if (active) {
