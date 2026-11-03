@@ -91,7 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const emailAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
   const isOrganizadora = emailAdmin || roles.includes("organizadora");
   const isTripMember = !isNeonConfigured || Boolean(participant) || isOrganizadora;
-  const canEdit = isOrganizadora || roles.includes("editora");
+  // As três viajantes podem colaborar no planejamento compartilhado.
+  const canEdit = isTripMember;
 
   return (
     <Ctx.Provider value={{
