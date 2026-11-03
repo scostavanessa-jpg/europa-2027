@@ -13,7 +13,7 @@ import Planejamento from "./pages/Planejamento";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, isTripMember, signOut } = useAuth();
+  const { user, loading, isTripMember, signOut, authError, refreshProfile } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -39,9 +39,14 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
           <p className="mt-5 text-[10px] tracking-[0.3em] uppercase text-olive">Europa 2028</p>
           <h1 className="font-display text-3xl text-ink mt-2">Acesso restrito ao grupo</h1>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            O planejamento é privado para Vanessa, Camila e Danielle. Cada viajante usa seu próprio acesso.
+            Seu login existe, mas o vínculo com uma das três viajantes ainda não está aprovado.
+            Confirme seu e-mail; Vanessa pode associar Camila e Danielle pela área do grupo.
           </p>
-          <Button variant="outline" className="rounded-full mt-6 min-h-11" onClick={() => void signOut()}>Sair</Button>
+          {authError && <p className="mt-3 text-xs text-destructive">Não foi possível confirmar o perfil: {authError}</p>}
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button className="rounded-full min-h-11" onClick={() => void refreshProfile()}>Atualizar meu acesso</Button>
+            <Button variant="outline" className="rounded-full min-h-11" onClick={() => void signOut()}>Sair</Button>
+          </div>
         </div>
       </div>
     );
