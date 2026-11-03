@@ -14,6 +14,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [inlineError, setInlineError] = useState("");
   const resetQuery = new URLSearchParams(window.location.search);
   const recovery = resetQuery.get("reset") === "1" || resetQuery.has("token");
   const [mode, setMode] = useState<Mode>(recovery ? "reset" : "login");
@@ -40,25 +41,19 @@ const Auth = () => {
 
   const signInGoogle = async () => {
     setGoogleBusy(true);
+    setInlineError("");
     try {
-      if (isNeonConfigured && neonAuthClient) {
-        const { error } = await neonAuthClient.signIn.social({
-          provider: "google",
-          callbackURL: `${window.location.origin}/grupo`,
-          errorCallbackURL: `${window.location.origin}/auth?error=google`,
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${window.location.origin}/grupo` },
-        });
-        if (error) throw error;
-      }
-    } catch (e: any) {
-      toast.error("Não foi possível iniciar o login com Google.", {
-        description: e?.message || "Confira sua conexão e tente novamente.",
+      // All login methods must share the same auth client and session store.
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/grupo` },
       });
+      if (error) throw error;
+      if (data?.url) window.location.assign(data.url);
+    } catch (e: any) {
+      const message = e?.message || "Confira sua conexão e tente novamente.";
+      setInlineError("O acesso pelo Google falhou: " + message);
+      toast.error("Não foi possível entrar com Google.", { description: message });
     } finally {
       setGoogleBusy(false);
     }
@@ -67,6 +62,7 @@ const Auth = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setInlineError("");
     try {
       if (mode === "signup") {
         if (!name) throw new Error("Escolha seu nome.");
@@ -135,6 +131,7 @@ const Auth = () => {
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
+      setInlineError(msg.includes("Invalid login") ? "E-mail ou senha inválidos." : msg);
       const resetError = mode === "reset" && /token|expired|invalid.*link|expiration/i.test(msg);
       if (resetError) {
         toast.error("Link vencido ou inválido.", { description: "Use ‘Esqueci minha senha’ para receber um novo link." });
@@ -205,6 +202,8 @@ const Auth = () => {
             </div>
           )}
 
+          {inlineError && <div role="alert" aria-live="polite" className="mt-5 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{inlineError}</div>}
+
           <form onSubmit={submit} className="mt-7 space-y-4">
             {mode === "signup" && (
               <div className="space-y-1.5">
@@ -228,7 +227,7 @@ const Auth = () => {
             {mode !== "forgot" && (
               <div className="space-y-1.5">
                 <Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Sua senha"}</Label>
-                <Input id="password" className="h-12 text-base rounded-xl" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input id="password" className="h-12 text-base rounded-xl" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? undefined : 8} required value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
             )}
 
