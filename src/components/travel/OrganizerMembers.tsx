@@ -12,6 +12,7 @@ const people: Person[] = ["Camila", "Danielle"];
 export function OrganizerMembers() {
   const [pending, setPending] = useState<PendingUser[]>([]);
   const [selected, setSelected] = useState<Record<string, Person | "">>({});
+  const [confirmedEmails, setConfirmedEmails] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,13 +36,15 @@ export function OrganizerMembers() {
   const approve = async (user: PendingUser) => {
     const chosenName = selected[user.user_id];
     if (!chosenName) return toast.error("Escolha Camila ou Danielle antes de vincular.");
-    if (!user.email_verified) return toast.error("Esta conta precisa confirmar o e-mail antes do vínculo.");
+    const confirmedEmail = confirmedEmails[user.user_id]?.trim() || "";
+    if (confirmedEmail.toLowerCase() !== user.email.toLowerCase()) return toast.error("Digite o endereço de e-mail informado pela viajante para confirmar o vínculo.");
     if (!window.confirm(`Vincular a conta ${user.email} ao perfil ${chosenName}? Confira com a viajante antes de prosseguir.`)) return;
     setBusy(user.user_id);
     try {
       const { error: approvalError } = await supabase.rpc("approve_trip_user", {
         target_user_id: user.user_id,
         chosen_name: chosenName,
+        confirmed_email: confirmedEmail,
       });
       if (approvalError) throw approvalError;
       toast.success(`Conta vinculada ao perfil ${chosenName}.`);
@@ -61,7 +64,7 @@ export function OrganizerMembers() {
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
         Como organizadora, você aprova a associação de cada conta ao perfil correto.
-        Primeiro confira com Camila ou Danielle qual e-mail realmente usaram. Não existe mais chave compartilhada.
+        Primeiro confira diretamente com Camila ou Danielle qual e-mail elas realmente usaram. Digite o endereço novamente antes de aprovar. Não existe mais chave compartilhada.
       </p>
       {loading ? <p className="mt-5 flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin"/>Consultando cadastros…</p> : error ?
         <div className="mt-5 rounded-xl border border-destructive/30 p-4 text-sm"><p>Erro ao consultar: {error}</p><Button variant="outline" className="mt-3" onClick={() => void reload()}>Tentar novamente</Button></div> :
@@ -72,17 +75,27 @@ export function OrganizerMembers() {
               <div className="min-w-0">
                 <p className="font-medium text-ink">{person.display_name || "Viajante"}</p>
                 <p className="text-xs text-muted-foreground break-all">{person.email}</p>
-                <p className="text-xs mt-1 text-muted-foreground">{person.email_verified ? "E-mail confirmado" : "E-mail ainda não confirmado"}</p>
+                <p className="text-xs mt-1 text-muted-foreground">{person.email_verified ? "E-mail confirmado" : "Cadastro sem verificação automática de e-mail — confirme com a viajante"}</p>
               </div>
-              <div className="grid sm:grid-cols-[1fr_auto] items-end gap-3 mt-3">
+              <div className="mt-3 space-y-3">
                 <div>
                   <Label htmlFor={`person-${person.user_id}`}>Associar ao perfil</Label>
-                  <select id={`person-${person.user_id}`} value={selected[person.user_id] || ""} onChange={e=>setSelected(v=>({...v,[person.user_id]:e.target.value as Person | ""}))} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm">
+                  <select id={`person-${person.user_id}`} value={selected[person.user_id] || ""} onChange={e=>setSelected(v=>({...v,[person.user_id]:e.target.value as Person | ""}))} className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm">
                     <option value="">Selecione a viajante</option>
                     {people.map(p=><option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
-                <Button type="button" disabled={!person.email_verified || !selected[person.user_id] || busy === person.user_id} onClick={()=>void approve(person)} className="min-h-11 rounded-full">
+                <div>
+                  <Label htmlFor={`email-${person.user_id}`}>E-mail que a viajante confirmou a você</Label>
+                  <input id={`email-${person.user_id}`} type="email" autoComplete="off"
+                    placeholder="Digite o e-mail confirmado" value={confirmedEmails[person.user_id] || ""}
+                    onChange={e=>setConfirmedEmails(v=>({...v,[person.user_id]:e.target.value}))}
+                    className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"/>
+                  <p className="mt-1 text-xs text-muted-foreground">Aprovação manual; não libera contas pelo nome escolhido no cadastro.</p>
+                </div>
+                <Button type="button"
+                  disabled={!selected[person.user_id] || (confirmedEmails[person.user_id] || "").trim().toLowerCase() !== person.email.toLowerCase() || busy === person.user_id}
+                  onClick={()=>void approve(person)} className="min-h-11 w-full rounded-full">
                   <UserCheck className="mr-2 h-4 w-4" />{busy === person.user_id ? "Vinculando…" : "Aprovar vínculo"}
                 </Button>
               </div>
