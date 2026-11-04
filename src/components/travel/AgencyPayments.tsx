@@ -35,6 +35,7 @@ export function AgencyPayments(){
  const [error,setError]=useState("");
  const [panel,setPanel]=useState<"plan"|"paid">("paid");
  const [installmentEditing,setInstallmentEditing]=useState<Installment|null>(null);
+ const [showInstallmentForm,setShowInstallmentForm]=useState(false);
  const [installmentNo,setInstallmentNo]=useState(19);
  const [installmentAmount,setInstallmentAmount]=useState("");
  const [installmentDue,setInstallmentDue]=useState("");
@@ -65,6 +66,7 @@ export function AgencyPayments(){
  const remaining=Math.max(0,totalPlanned-totalPaid);
  const progress=totalPlanned>0?Math.min(100,(totalPaid/totalPlanned)*100):0;
  const startEdit=(item?:Installment)=>{
+   setShowInstallmentForm(true);
    setInstallmentEditing(item||null);
    setInstallmentNo(item?.installment_number||missing[0]||19);
    setInstallmentAmount(item?String(item.amount):"");
@@ -83,7 +85,7 @@ export function AgencyPayments(){
       ?await supabase.from("agency_installments").update(record).eq("id",installmentEditing.id).eq("owner_id",user.id)
       :await supabase.from("agency_installments").insert(record);
     if(dbError)throw dbError;
-    toast.success("Parcela atualizada no seu cronograma.");setInstallmentEditing(null);setInstallmentAmount("");await load();
+    toast.success("Parcela atualizada no seu cronograma.");setInstallmentEditing(null);setShowInstallmentForm(false);setInstallmentAmount("");setInstallmentDue("");await load();
   }catch(e:any){toast.error("Erro ao salvar parcela.",{description:e?.message});}
   finally{setBusy(false);}
  };
@@ -174,12 +176,12 @@ export function AgencyPayments(){
      <div className="h-10 w-11 rounded-xl bg-[#f5f2e8] text-[#9b8154] grid place-items-center text-sm font-semibold">{number}/20</div><p className="flex-1 text-sm text-[#977954]">Valor não informado</p>
      <button type="button" onClick={()=>{startEdit();setInstallmentNo(number);}} className="min-h-10 px-3 text-xs text-olive">Preencher</button>
    </div>)}</div>
-   {(installmentEditing||installmentAmount!==""||installmentDue!==""||panel==="plan"&&missing.length===0&&false) && (
+   {showInstallmentForm && (
      <form onSubmit={saveInstallment} className="mt-5 rounded-2xl bg-[#f7f8f2] p-4 space-y-3">
        <h4 className="font-semibold text-sm">Editar parcela {installmentNo}/20</h4>
        <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="installment-amount">Valor previsto</Label><Input id="installment-amount" type="number" step=".01" min=".01" required value={installmentAmount} onChange={e=>setInstallmentAmount(e.target.value)} className="mt-1 h-11"/></div>
        <div><Label htmlFor="installment-date">Vencimento (opcional)</Label><Input id="installment-date" type="date" value={installmentDue} onChange={e=>setInstallmentDue(e.target.value)} className="mt-1 h-11"/></div></div>
-       <div className="flex gap-2"><Button type="submit" disabled={busy} className="rounded-full flex-1 min-h-11">Salvar valor previsto</Button><Button variant="outline" type="button" className="rounded-full min-h-11" onClick={()=>{setInstallmentEditing(null);setInstallmentAmount("");setInstallmentDue("");}}>Cancelar</Button></div>
+       <div className="flex gap-2"><Button type="submit" disabled={busy} className="rounded-full flex-1 min-h-11">Salvar valor previsto</Button><Button variant="outline" type="button" className="rounded-full min-h-11" onClick={()=>{setShowInstallmentForm(false);setInstallmentEditing(null);setInstallmentAmount("");setInstallmentDue("");}}>Cancelar</Button></div>
      </form>
    )}
   </section>}
