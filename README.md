@@ -58,20 +58,20 @@ Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e
 
 | Módulo | Estado observado | Próxima validação |
 |---|---|---|
-| Login individual/organizadora | Implementado; histórico recente de falhas | Testar sessão real no Android, reconexão, aprovação de Camila/Danielle |
+| Login individual/organizadora | Registro e sessão em conta QA demonstrados; redirecionamento Google validado até a página do Google; aprovação manual corrigida para configuração de e-mail não verificado | Testar sessão real de Vanessa e aprovações de Camila/Danielle em celulares |
 | Página inicial e trem | Fotografia licenciada do Bernina Express com SVG alternativo | Imagem antiga exata não recuperada, revisar legibilidade no celular |
 | Calendário/férias | Dois cenários e comparações | Revisar feriados e calendário Kaplan com fontes oficiais |
-| Roteiro/hospedagens | Editáveis com banco | Testar CRUD simultâneo nas três contas |
+| Roteiro/hospedagens | Editáveis com banco, destinos com Google Maps/direções | Inserção real via conta QA validada; falta teste simultâneo das três contas |
 | Cofrinho/metas | Banco | Testar privacidade e totais |
 | Gastos pessoais | Novo módulo `personal_expenses` | Testar CRUD privado e divisão sob confirmação |
-| Rateio | Despesas, divisões iguais/valor/% e acertos | Testar saldo, sincronização e permissões entre contas |
+| Rateio | Despesas, divisões iguais/valor/%, acertos e exportação CSV | Cadastro e recarga persistente de despesa com divisão GBP £9/3 validado por conta descartável; falta sessão real das três |
 | Passagens/radar | Histórico compartilhado `flight_price_history` | Testar entrada e links; busca automática ainda não existe |
 | Cupons | Lista compartilhada `travel_coupons` | Verificar validade e confiabilidade de cada cupom |
 | Câmbio/alertas | Preferências cadastradas | Implementar notificações reais verificadas |
 | Clima/notícias/fusos | Conteúdo de apoio | Validar dados atuais e evitar conteúdo estático incorreto |
 | Checklist | Banco | Testar marcações e separação por usuária |
 | Agência/comprovantes | Implementado, validar em conta real | 19 valores conhecidos das 20 parcelas (R$ 7.930,78) e 4 pagamentos confirmados (R$ 3.104); suporta pagamentos novos, correções e comprovantes por link |
-| Chat compartilhado/WhatsApp | Pendente | Definir canal e permissões; nunca alegar entrega sem conexão |
+| Chat compartilhado/WhatsApp | Links do grupo implementados, chat externo não integrado | Em Grupo > Links da nossa viagem, as três podem salvar link do chat e documentos. Não confundir link compartilhado com chat sincronizado |
 
 ## 5. Referências de mercado verificadas
 
@@ -109,3 +109,13 @@ Para cada mudança:
 - Vite + React + TypeScript + Tailwind + React Router, deploy Vercel.
 - Neon Auth + Neon Data API + Postgres com RLS, tabelas `participants`, `profiles`, `user_roles`, `personal_expenses`, `expenses`, `expense_shares`, `settlements`, `savings_goals`, `savings_entries`, `flight_price_history`, `travel_coupons`, `accommodations`, `route_items`, `alerts` e `checklist_items`.
 - As três viajantes têm acesso individual; Vanessa é organizadora. Autorização sensível é conferida no banco, não só por botão no frontend.
+
+## 8. Testes de regressão executados em 03/11/2026
+
+- Criada conta de teste descartável, sem usar credenciais reais. Cadastro aceito e sessão observada no Neon. Após recarga de página, sessão reconhecida pela aplicação.
+- Rateio criado por formulário real: £9,00, £3,00 por pessoa, saldos corretos e registro persistido após recarga. Despesa QA removida depois do teste.
+- Inclusão de cidade no planejamento por formulário real: operação confirmada. Cidade QA removida depois do teste.
+- Botão Google devolveu inicialmente sucesso sem redirecionar; fluxo restaurado para client Neon nativo e confirmado até a tela de seleção de conta Google (não testado com credenciais de usuária real).
+- Criada rotina de aprovação manual da organizadora porque a configuração do Neon não exige verificação de e-mail; aprovação requer redigitação exata do e-mail que a viajante informou à organizadora.
+- Conta QA, vínculos, papel, cidade e despesa de teste foram removidos; confirmada ausência de restos no banco.
+- A fotografia usada como marca d'água é **substituta licenciada** (Christian Lue/Unsplash, Bernina Express); não alegar que é o original antigo.
