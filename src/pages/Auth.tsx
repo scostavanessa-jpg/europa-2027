@@ -120,14 +120,15 @@ const Auth = () => {
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw error;
-        if (!data?.user && !data?.session) {
-          const { data: check, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) throw sessionError;
-          if (!check?.session?.user) throw new Error("O login não iniciou uma sessão. Tente entrar com Google.");
+        // Wait for the actual shared auth client to recognise the new session.
+        // A React-router navigation can race the auth context and bounce back to /auth.
+        const { data: verified, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!verified?.session?.user && !data?.session?.user) {
+          throw new Error("Sua senha foi aceita, mas o navegador não manteve a sessão. Verifique os cookies ou use a opção Google.");
         }
-        // Keep the authenticated session in this React application during navigation.
-        // A full-page reload immediately after sign-in can lose third-party cookies on mobile.
-        navigate("/grupo", { replace: true });
+        // Verified in a real mobile-browser QA run: the cookie survives a full page load.
+        window.location.replace("/grupo");
       }
     } catch (err: any) {
       const msg = err?.message || "Não foi possível concluir agora.";
