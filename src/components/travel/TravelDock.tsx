@@ -27,7 +27,7 @@ export function TravelDock() {
                 to={item.to}
                 aria-current={active ? "page" : undefined}
                 aria-label={item.label}
-                className={"flex min-h-13 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium transition-colors " +
+                className={"flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium transition-colors " +
                   (active ? "bg-[#e9eddf] text-[#46583a]" : "text-[#77806f] active:bg-[#f0f0e8]")}
               >
                 <Icon className={"h-[19px] w-[19px] " + (active ? "text-[#46583a]" : "text-[#687764]")}/>
