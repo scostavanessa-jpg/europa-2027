@@ -59,7 +59,7 @@ Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e
 | Módulo | Estado observado | Próxima validação |
 |---|---|---|
 | Login individual/organizadora | Implementado; histórico recente de falhas | Testar sessão real no Android, reconexão, aprovação de Camila/Danielle |
-| Página inicial e trem | Novo layout + SVG provisório | Recuperar imagem antiga autêntica e validar legibilidade |
+| Página inicial e trem | Fotografia licenciada do Bernina Express com SVG alternativo | Imagem antiga exata não recuperada, revisar legibilidade no celular |
 | Calendário/férias | Dois cenários e comparações | Revisar feriados e calendário Kaplan com fontes oficiais |
 | Roteiro/hospedagens | Editáveis com banco | Testar CRUD simultâneo nas três contas |
 | Cofrinho/metas | Banco | Testar privacidade e totais |
@@ -70,7 +70,7 @@ Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e
 | Câmbio/alertas | Preferências cadastradas | Implementar notificações reais verificadas |
 | Clima/notícias/fusos | Conteúdo de apoio | Validar dados atuais e evitar conteúdo estático incorreto |
 | Checklist | Banco | Testar marcações e separação por usuária |
-| Agência/comprovantes | Pendente | Conciliar cronograma e pagamentos reais, com comprovantes |
+| Agência/comprovantes | Implementado, validar em conta real | 19 valores conhecidos das 20 parcelas (R$ 7.930,78) e 4 pagamentos confirmados (R$ 3.104); suporta pagamentos novos, correções e comprovantes por link |
 | Chat compartilhado/WhatsApp | Pendente | Definir canal e permissões; nunca alegar entrega sem conexão |
 
 ## 5. Referências de mercado verificadas
@@ -94,6 +94,14 @@ Para cada mudança:
 - Conferir build, URL `https://europa-2028.vercel.app/`, rotas profundas e celular.
 - Atualizar este documento e a página **Nossa essência** (`/projeto`).
 - **Não inventar** cotações, tarifas, horários, pagamentos, API conectada ou notificações já enviadas.
+
+### Controle financeiro da agência — importação original de setembro de 2026
+
+- Parcelas conhecidas: 1/20 R$ 1.000,00; 2/20 R$ 452,00; 3/20 R$ 452,00; 15 parcelas de 4/20 a 18/20 de R$ 290,04; 20/20 R$ 1.676,18. Total conhecido: **R$ 7.930,78**. **19/20 permanece sem valor informado**, portanto não tratar como contrato total.
+- Pagamentos reais confirmados: 30/01/2026 R$ 1.000,00; 27/02 R$ 452,00; 02/04 R$ 452,00; 30/06 R$ 1.200,00. **Total pago comprovado: R$ 3.104,00.** Os pagamentos não são distribuídos arbitrariamente pelas parcelas.
+- Intenção de pagar R$ 1.500 em setembro de 2026 não equivale a pagamento confirmado. Não importar como quitado até haver comprovante ou confirmação.
+- Datas oficiais de vencimento não confirmadas, por isso foram preservadas vazias no banco e são editáveis. Links dos comprovantes ainda podem ser anexados aos registros.
+- Controle individual fica em **Minha viagem > Agência**; RLS protege as informações particulares.
 
 ## 7. Arquitetura
 
