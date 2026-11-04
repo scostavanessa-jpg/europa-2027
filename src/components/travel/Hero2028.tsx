@@ -1,3 +1,4 @@
+import { TrainWatermark } from "@/components/travel/TrainWatermark";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, CalendarDays, GraduationCap, MapPin, TrainFront } from "lucide-react";
 
@@ -10,12 +11,12 @@ const facts = [
 
 export const Hero2028 = () => (
   <header id="topo" className="relative isolation-auto overflow-hidden bg-[#f6f2e9] border-b border-[#e3ddcd]">
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <img src="/hero-train.svg" alt="" loading="eager"
-        className="absolute inset-0 h-full w-full object-cover object-[58%_50%] scale-[1.04] opacity-[.52]"/>
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,246,240,.96)_0%,rgba(248,246,240,.84)_48%,rgba(248,246,240,.54)_100%)]"/>
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#f6f2e9] to-transparent"/>
-    </div>
+    <TrainWatermark
+      className="absolute inset-0 pointer-events-none overflow-hidden"
+      imageClassName="opacity-[.30] object-[48%_center]"
+      gradientClassName="bg-gradient-to-r from-[#f6f2e9]/95 via-[#f6f2e9]/80 to-[#f6f2e9]/62"
+      showCredit
+    />
 
     <div className="relative mx-auto max-w-6xl px-5 sm:px-7 pt-14 pb-12 md:pt-24 md:pb-20">
       <div className="inline-flex items-center gap-2 rounded-full border border-olive/20 bg-white/70 px-4 py-2 text-[11px] font-medium tracking-[.11em] uppercase text-olive shadow-sm backdrop-blur">
