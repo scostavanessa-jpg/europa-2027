@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Bell, Loader2, PiggyBank, Sparkles, Target, ReceiptText } from "lucide-react";
+import { ArrowLeft, Bell, Loader2, PiggyBank, Sparkles, Target, ReceiptText, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { PersonalExpenses } from "@/components/travel/PersonalExpenses";
+import { AgencyPayments } from "@/components/travel/AgencyPayments";
 
 type SavingGoal = { id: string; target_total_brl: number; monthly_target_brl: number; notes: string | null };
 type SavingEntry = { id: string; entry_date: string; amount_brl: number; notes: string | null };
@@ -106,7 +107,7 @@ export default function MinhaViagem() {
     <Link to="/" className="inline-flex items-center gap-2 text-sm text-olive hover:underline"><ArrowLeft className="h-4 w-4"/>Voltar à viagem</Link>
     <div className="mt-7 mb-8"><p className="text-xs tracking-[0.3em] uppercase text-olive">Área pessoal · salva na nuvem</p><h1 className="font-display text-4xl md:text-5xl text-ink mt-2">Minha viagem</h1><p className="text-muted-foreground mt-2">{name} · cofrinho, gastos privados, desejos e preferências pessoais. Seus dados aparecem em qualquer aparelho em que você entrar.</p></div>
 
-    <Tabs defaultValue="cofrinho"><TabsList className="w-full justify-start overflow-x-auto bg-secondary/60"><TabsTrigger value="cofrinho"><PiggyBank className="h-4 w-4 mr-1.5"/>Cofrinho</TabsTrigger><TabsTrigger value="gastos"><ReceiptText className="h-4 w-4 mr-1.5"/>Gastos</TabsTrigger><TabsTrigger value="prioridades"><Sparkles className="h-4 w-4 mr-1.5"/>Prioridades</TabsTrigger><TabsTrigger value="alertas"><Bell className="h-4 w-4 mr-1.5"/>Alertas</TabsTrigger></TabsList>
+    <Tabs defaultValue="cofrinho"><TabsList className="w-full h-auto justify-start overflow-x-auto bg-secondary/60 flex-nowrap"><TabsTrigger value="cofrinho" className="shrink-0"><PiggyBank className="h-4 w-4 mr-1.5"/>Cofrinho</TabsTrigger><TabsTrigger value="gastos" className="shrink-0"><ReceiptText className="h-4 w-4 mr-1.5"/>Gastos</TabsTrigger><TabsTrigger value="agencia" className="shrink-0"><Wallet className="h-4 w-4 mr-1.5"/>Agência</TabsTrigger><TabsTrigger value="prioridades"><Sparkles className="h-4 w-4 mr-1.5"/>Prioridades</TabsTrigger><TabsTrigger value="alertas"><Bell className="h-4 w-4 mr-1.5"/>Alertas</TabsTrigger></TabsList>
       <TabsContent value="cofrinho" className="mt-6 space-y-5">
         <div className="grid sm:grid-cols-4 gap-3"><Metric label="Meta total" value={money(targetTotal)}/><Metric label="Guardado" value={money(totalSaved)}/><Metric label="Pendente" value={money(pending)}/><Metric label="Progresso" value={`${progress.toFixed(1)}%`}/></div>
         <div className="rounded-3xl border border-gold/30 bg-card p-6 shadow-card"><div className="h-2 rounded-full bg-secondary overflow-hidden mb-6"><div className="h-full bg-olive transition-all" style={{width:`${progress}%`}}/></div>
@@ -117,6 +118,8 @@ export default function MinhaViagem() {
       </TabsContent>
 
       <TabsContent value="gastos" className="mt-6"><PersonalExpenses/></TabsContent>
+
+      <TabsContent value="agencia" className="mt-6"><AgencyPayments/></TabsContent>
 
       <TabsContent value="prioridades" className="mt-6 space-y-5"><div className="rounded-3xl border border-gold/30 bg-card p-6 shadow-card"><div className="flex items-center gap-3 mb-5"><Target className="h-5 w-5 text-olive"/><div><h2 className="font-display text-2xl text-ink">O que importa para você</h2><p className="text-sm text-muted-foreground">Suas prioridades ficam privadas na sua conta.</p></div></div><form onSubmit={addPriority} className="grid md:grid-cols-2 gap-3"><div><Label>Quero fazer</Label><Input value={priorityTitle} onChange={e=>setPriorityTitle(e.target.value)} placeholder="Ex.: treinar jiu-jitsu" required/></div><div><Label>Cidade</Label><Input value={priorityCity} onChange={e=>setPriorityCity(e.target.value)}/></div><div><Label>Prioridade</Label><select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={priorityLevel} onChange={e=>setPriorityLevel(e.target.value as PriorityLevel)}><option>Imperdível</option><option>Desejável</option><option>Opcional</option></select></div><div><Label>Observação</Label><Input value={priorityNotes} onChange={e=>setPriorityNotes(e.target.value)} placeholder="Detalhes, horário, ideia…"/></div><Button className="rounded-full md:w-fit">Adicionar prioridade</Button></form></div>
         <div className="grid md:grid-cols-2 gap-3">{priorities.length===0?<p className="text-sm text-muted-foreground">Nenhuma prioridade ainda.</p>:priorities.map(item=><div key={item.id} className="rounded-3xl bg-card border border-border/60 p-5 shadow-card"><div className="text-[10px] uppercase tracking-wider text-olive">{item.city||"Sem cidade"}</div><h3 className="font-display text-2xl text-ink mt-1">{item.title}</h3><span className="inline-block mt-3 text-xs rounded-full px-3 py-1 bg-gold/15 border border-gold/30">{item.priority}</span>{item.notes&&<p className="text-sm text-muted-foreground mt-3">{item.notes}</p>}<Button size="sm" variant="ghost" className="mt-3" onClick={()=>void deletePriority(item.id)}>Excluir</Button></div>)}</div>
