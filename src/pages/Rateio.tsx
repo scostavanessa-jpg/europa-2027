@@ -1,3 +1,4 @@
+import { TrainWatermark } from "@/components/travel/TrainWatermark";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,10 +239,7 @@ export default function Rateio(){
   if(loading && !people.length)return <div className="min-h-screen grid place-items-center bg-[#f8f6f1] text-olive"><Loader2 className="animate-spin h-7 w-7"/><span className="mt-3 text-sm">Abrindo o rateio…</span></div>;
   return <div className="min-h-screen bg-[#f8f6f1] text-[#293027] pb-28">
     <div className="relative overflow-hidden bg-[#eeeede] border-b border-[#e0dfd0]">
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <img src="/hero-train.svg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-[.28]"/>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#f1f0e7]/95 via-[#f1f0e7]/80 to-[#f1f0e7]/55"/>
-      </div>
+      <TrainWatermark className="absolute inset-0 pointer-events-none" imageClassName="opacity-[.19] object-[58%_center]" gradientClassName="bg-gradient-to-r from-[#f1f0e7]/95 via-[#f1f0e7]/80 to-[#f1f0e7]/62" />
       <div className="relative mx-auto max-w-6xl px-5 sm:px-7 pt-7 pb-9">
         <Link to="/" className="inline-flex min-h-10 items-center gap-2 text-sm text-olive hover:underline"><ArrowLeft className="w-4 h-4"/> Voltar à viagem</Link>
         <div className="flex items-end justify-between gap-3 mt-5">
