@@ -1,3 +1,4 @@
+import { TrainWatermark } from "@/components/travel/TrainWatermark";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,8 +116,7 @@ export default function Ofertas(){
 
  return <div className="min-h-screen bg-[#f8f6f1] pb-24 text-[#2c3328]">
   <header className="bg-[#eeefe6] relative overflow-hidden border-b border-[#e2e4d8]">
-   <img src="/hero-train.svg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-20 pointer-events-none"/>
-   <div className="absolute inset-0 bg-[#f1f2e9]/75 pointer-events-none"/>
+   <TrainWatermark className="absolute inset-0 pointer-events-none" imageClassName="opacity-[.24] object-center" gradientClassName="bg-gradient-to-r from-[#f1f2e9]/96 via-[#f1f2e9]/83 to-[#f1f2e9]/67" />
    <div className="relative mx-auto max-w-6xl px-5 sm:px-7 py-8 sm:py-12">
     <Link to="/" className="inline-flex items-center min-h-10 gap-2 text-sm text-olive"><ArrowLeft className="h-4 w-4"/>Voltar à viagem</Link>
     <p className="mt-7 text-[11px] uppercase tracking-[.25em] text-olive/80 font-semibold">Passagens · promoções · memória de preços</p>
