@@ -43,13 +43,24 @@ const Auth = () => {
     setGoogleBusy(true);
     setInlineError("");
     try {
-      // All login methods must share the same auth client and session store.
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/grupo` },
-      });
-      if (error) throw error;
-      if (data?.url) window.location.assign(data.url);
+      // Managed Better Auth performs the Google redirect with the native Neon client.
+      // The Supabase compatibility adapter may return success without navigating.
+      if (isNeonConfigured && neonAuthClient) {
+        const { data, error } = await neonAuthClient.signIn.social({
+          provider: "google",
+          callbackURL: `${window.location.origin}/grupo`,
+          errorCallbackURL: `${window.location.origin}/auth?error=google`,
+        });
+        if (error) throw error;
+        if (data?.url) window.location.assign(data.url);
+      } else {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${window.location.origin}/grupo` },
+        });
+        if (error) throw error;
+        if (data?.url) window.location.assign(data.url);
+      }
     } catch (e: any) {
       const message = e?.message || "Confira sua conexão e tente novamente.";
       setInlineError("O acesso pelo Google falhou: " + message);
