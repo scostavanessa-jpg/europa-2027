@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, ArrowRightLeft, Check, ChevronDown, CircleCheck, Coffee,
   CreditCard, GraduationCap, Hotel, Loader2, MapPinned, Plus, ReceiptText,
-  Search, SlidersHorizontal, Trash2, TrainFront, Wallet, X, Pencil, Copy
+  Search, SlidersHorizontal, Trash2, TrainFront, Wallet, X, Pencil, Copy, Download
 } from "lucide-react";
 
 type PersonName = "Vanessa" | "Camila" | "Danielle";
@@ -228,6 +228,34 @@ export default function Rateio(){
       && !shares.some(sh=>sh.expense_id===exp.id && nameById(sh.participant_id)===filterPerson))return false;
     return !search.trim()||(exp.description+" "+(exp.notes||"")).toLowerCase().includes(search.toLowerCase().trim());
   });
+  const exportStatement = () => {
+    const fields = ["Tipo","Data","Descrição","Categoria","Moeda","Valor","Pagador/Origem","Destinatário","Parcela Vanessa","Parcela Camila","Parcela Danielle","Observações"];
+    const rows: (string | number)[][] = [fields];
+    for(const e of expenses.filter(x=>x.currency===activeCurrency)){
+      const distribution = Object.fromEntries(
+        PEOPLE.map(name => [name, shares.filter(sh=>sh.expense_id===e.id && nameById(sh.participant_id)===name)
+          .reduce((total,sh)=>total+Number(sh.share_amount),0)])
+      );
+      rows.push(["Despesa",e.expense_date,e.description,e.category||"Outros",e.currency,
+        Number(e.total_amount).toFixed(2),nameById(e.paid_by)||"", "",
+        ...PEOPLE.map(name=>Number(distribution[name]||0).toFixed(2)),e.notes||""]);
+    }
+    for(const st of settlements.filter(x=>x.currency===activeCurrency)){
+      rows.push(["Acerto",st.settled_at,"Pagamento confirmado","Acerto",st.currency,
+        Number(st.amount).toFixed(2),nameById(st.payer_id)||"",nameById(st.payee_id)||"","","","",st.notes||""]);
+    }
+    const csv = "\uFEFF" + rows.map(row=>row.map(value=>'"'+String(value??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
+    const anchor = document.createElement("a");
+    anchor.href=url;
+    anchor.download="Europa-2028-rateio-"+activeCurrency+"-"+new Date().toLocaleDateString("en-CA")+".csv";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast.success("Extrato exportado em CSV.");
+  };
+
   const copyStatement=async()=>{
     const textLines=["Europa 2028 · Rateio "+activeCurrency,
       "Total de despesas: "+formatMoney(current.total,activeCurrency),
@@ -262,6 +290,14 @@ export default function Rateio(){
         <button type="button" onClick={openNew} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-olive px-5 text-white font-medium text-sm shadow-soft transition-transform active:scale-[.98]"><Plus className="h-4 w-4"/> Nova despesa</button>
       </div>
 
+      <div className="flex items-center justify-end gap-2 mb-5">
+        <button type="button" onClick={copyStatement} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#dadfd0] bg-white px-4 text-xs font-medium text-olive">
+          <Copy className="h-4 w-4"/> Copiar resumo
+        </button>
+        <button type="button" onClick={exportStatement} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#dadfd0] bg-white px-4 text-xs font-medium text-olive">
+          <Download className="h-4 w-4"/> Exportar CSV
+        </button>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="rounded-[22px] border border-[#e8e4d9] bg-white px-5 py-5 shadow-card">
           <p className="text-xs text-[#777b71]">Total registrado</p><p className="text-2xl sm:text-3xl font-semibold tracking-tight mt-2">{formatMoney(current.total,activeCurrency)}</p>
