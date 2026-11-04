@@ -18,8 +18,8 @@ const matrix:Item[]=[
  {title:"Contadores, checklist e fuso horário",phase:"Existe, validar",detail:"Informações e checklist disponíveis, mas precisam acompanhar as datas finais e passar por testes em aparelhos diferentes."},
  {title:"WhatsApp, chat e lembretes",phase:"Pendente",detail:"Integração e disparos automáticos dependem de autorização e infraestrutura; nenhum aviso é prometido sem configuração ativa."},
  {title:"Compras críticas e estratégia",phase:"Parcial",detail:"Monitorar voos, Eurostar, hospedagens e trem Bernina; comparar preço total com bagagem e deslocamentos, não apenas tarifa."},
- {title:"Controle de pagamentos à agência",phase:"Pendente",detail:"Trazer o cronograma e comprovantes ao painel apenas depois de conferir o histórico; valores não devem ser estimados como pagamentos efetivos."},
- {title:"Imagem original do trem",phase:"Parcial",detail:"Há um desenho restaurado como marca-d'água. A imagem histórica apreciada ainda não foi recuperada em um arquivo utilizável."},
+ {title:"Controle de pagamentos à agência",phase:"Existe, validar",detail:"Controle privado em Minha viagem > Agência. Importados quatro pagamentos confirmados, total R$ 3.104,00, e 19 valores conhecidos do cronograma; a parcela 19/20 ainda falta. Permite registrar novos pagamentos e vincular comprovantes."},
+ {title:"Imagem original do trem",phase:"Parcial",detail:"Fotografia licenciada do Bernina Express como marca-d’água delicada. A imagem histórica exata não pôde ser recuperada; o desenho ficou como alternativa quando não há conexão."},
 ];
 const phaseColor:Record<Phase,string>={
  "Existe, validar":"text-[#4b6851]",
