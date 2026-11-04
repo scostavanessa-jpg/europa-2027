@@ -1,3 +1,4 @@
+import { TrainWatermark } from "@/components/travel/TrainWatermark";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, CircleAlert, Compass, Heart, LockKeyhole, TrainFront } from "lucide-react";
 
@@ -37,8 +38,7 @@ const references=[
 export default function Projeto(){
  return <div className="min-h-screen bg-[#f8f6f1] text-[#30362b] pb-20">
   <header className="relative overflow-hidden bg-[#f1f1e7] border-b border-[#e5e6d9]">
-   <img src="/hero-train.svg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-[.23] pointer-events-none"/>
-   <div className="absolute inset-0 bg-[#f4f3ec]/75"/>
+   <TrainWatermark className="absolute inset-0 pointer-events-none" imageClassName="opacity-[.24]" gradientClassName="bg-gradient-to-r from-[#f4f3ec]/96 via-[#f4f3ec]/84 to-[#f4f3ec]/65" />
    <div className="relative mx-auto max-w-5xl px-5 sm:px-7 pt-7 pb-12">
     <Link to="/" className="inline-flex items-center gap-2 min-h-11 text-sm text-olive"><ArrowLeft className="h-4 w-4"/>Voltar ao painel</Link>
     <p className="mt-6 text-xs uppercase tracking-[.24em] text-olive/80">A nossa bússola · 03/11/2026</p>
