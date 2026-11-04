@@ -13,6 +13,7 @@ import Planejamento from "./pages/Planejamento";
 import Projeto from "./pages/Projeto";
 import Diagnostico from "./pages/Diagnostico";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { TravelDock } from "@/components/travel/TravelDock";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, isTripMember, signOut, authError, refreshProfile } = useAuth();
@@ -54,7 +55,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return <>{children}<TravelDock /></>;
 }
 
 export default function App() {
