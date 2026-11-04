@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, GraduationCap, MapPin, Mountain, Plane, Train } from "lucide-react";
+import { ArrowRight, Building2, ExternalLink, GraduationCap, MapPin, Mountain, Plane, Train } from "lucide-react";
 
 const europeFirst=[
   {icon:Plane,name:"Brasil",note:"embarque para a Europa"},
@@ -24,6 +24,9 @@ const courseFirst=[
   {icon:Building2,name:"Milão",note:"final do roteiro e voo de volta"},
 ];
 
+const mapSearch=(place:string)=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place);
+const mapRoute=(origin:string,destination:string)=>"https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(origin)+"&destination="+encodeURIComponent(destination)+"&travelmode=transit";
+
 const Route = ({title,badge,stops}:{title:string;badge:string;stops:typeof europeFirst}) => (
   <div className="rounded-[2rem] border border-border/60 bg-card/80 p-5 sm:p-6 shadow-card">
     <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -35,7 +38,14 @@ const Route = ({title,badge,stops}:{title:string;badge:string;stops:typeof europ
     <div className="space-y-2">
       {stops.map((s,i)=><div key={`${title}-${s.name}`} className="relative flex items-center gap-3 rounded-2xl border border-border/50 bg-background/60 p-3.5">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.name==="Liverpool"?"bg-gold/20":"bg-olive/10"}`}><s.icon className="h-4.5 w-4.5 text-olive"/></div>
-        <div className="min-w-0 flex-1"><p className="font-display text-xl text-ink">{s.name}</p><p className="text-xs text-muted-foreground leading-relaxed">{s.note}</p></div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-xl text-ink">{s.name}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{s.note}</p>
+          <div className="flex flex-wrap gap-3 mt-2">
+            {s.name!=="Brasil"&&<a href={mapSearch(s.name)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center gap-1 text-xs font-medium text-olive">Ver no mapa <ExternalLink className="h-3 w-3"/></a>}
+            {i<stops.length-1&&s.name!=="Brasil"&&stops[i+1].name!=="Brasil"&&<a href={mapRoute(s.name,stops[i+1].name)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center gap-1 text-xs text-olive/80">Como chegar ao próximo destino <ArrowRight className="h-3 w-3"/></a>}
+          </div>
+        </div>
         {i<stops.length-1&&<ArrowRight className="h-4 w-4 text-gold shrink-0"/>}
       </div>)}
     </div>
