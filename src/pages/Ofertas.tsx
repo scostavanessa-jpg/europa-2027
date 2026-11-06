@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Bell, CalendarClock, ExternalLink, Loader2, Plane, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { buildTripSchedule, defaultTripWindow, formatTripShort } from "@/lib/tripSchedule2028";
 
 type Price = {
  id:string; origin:string; destination:string; departure_date:string; adults:number;
@@ -16,15 +17,25 @@ type Price = {
 type Coupon = {id:string;title:string;merchant:string|null;code:string|null;url:string|null;expires_at:string|null;notes:string|null};
 type Tab="radar"|"history"|"coupons";
 type Scenario="europa"|"curso";
-const scenarios:Record<Scenario,{label:string;summary:string;routes:{from:string;to:string;date:string;label:string;note:string}[]}>={
- europa:{label:"Europa primeiro",summary:"Hipótese mais recente: passeio antes da Kaplan em Liverpool",routes:[
-  {from:"SAO",to:"MXP",date:"2028-03-17",label:"Chegada pelo continente",note:"São Paulo → Milão · somente data de referência"},
-  {from:"LHR",to:"SAO",date:"2028-04-23",label:"Volta depois do curso",note:"Londres → São Paulo · comparar Manchester como alternativa"},
- ]},
- curso:{label:"Curso primeiro",summary:"Alternativa mantida em aberto: Liverpool antes do passeio",routes:[
-  {from:"SAO",to:"LHR",date:"2028-03-10",label:"Chegada pelo Reino Unido",note:"São Paulo → Londres · comparar Manchester"},
-  {from:"MXP",to:"SAO",date:"2028-04-16",label:"Volta pelo continente",note:"Milão → São Paulo · evita refazer todo o roteiro"}
- ]}
+const tourFirst=buildTripSchedule(defaultTripWindow,"tour-first");
+const courseFirst=buildTripSchedule(defaultTripWindow,"course-first");
+const scenarios:Record<Scenario,{label:string;summary:string;dates:string;routes:{from:string;to:string;date:string;label:string;note:string}[]}>={
+ europa:{
+  label:"Europa primeiro",summary:"Passeio → 4 semanas de curso em Liverpool",
+  dates:`Passeio ${formatTripShort(tourFirst.tourismStart)}–${formatTripShort(tourFirst.tourismEnd)} · Curso ${formatTripShort(tourFirst.courseStart)}–${formatTripShort(tourFirst.courseEnd)}`,
+  routes:[
+   {from:"SAO",to:"MXP",date:tourFirst.flight,label:"Chegada pelo continente",note:"São Paulo → Milão · referência, não bilhete reservado"},
+   {from:"LHR",to:"SAO",date:tourFirst.returnDate,label:"Volta após o curso",note:"Londres → São Paulo · conferir Manchester"}
+  ]
+ },
+ curso:{
+  label:"Curso primeiro",summary:"4 semanas de curso → passeio europeu",
+  dates:`Curso ${formatTripShort(courseFirst.courseStart)}–${formatTripShort(courseFirst.courseEnd)} · Passeio ${formatTripShort(courseFirst.tourismStart)}–${formatTripShort(courseFirst.tourismEnd)}`,
+  routes:[
+   {from:"SAO",to:"LHR",date:courseFirst.flight,label:"Chegada para estudar",note:"São Paulo → Londres · comparar Manchester, instalar-se em Liverpool antes de segunda-feira"},
+   {from:"MXP",to:"SAO",date:courseFirst.returnDate,label:"Volta depois do passeio",note:"Milão → São Paulo · mesmo dia de retorno da outra opção"}
+  ]
+ }
 };
 const brl=(n:number)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(n||0);
 const today=()=>new Date().toLocaleDateString("en-CA");
@@ -40,7 +51,7 @@ export default function Ofertas(){
  const [error,setError]=useState("");
  const [origin,setOrigin]=useState("SAO");
  const [dest,setDest]=useState("MXP");
- const [depart,setDepart]=useState("2028-03-17");
+ const [depart,setDepart]=useState(defaultTripWindow.flight);
  const [value,setValue]=useState("");
  const [airline,setAirline]=useState("");
  const [source,setSource]=useState("");
@@ -141,7 +152,7 @@ export default function Ofertas(){
     <div className="rounded-3xl bg-white border border-[#e8e5dc] p-5 sm:p-7 shadow-card">
      <p className="text-xs uppercase tracking-widest text-olive/70">Duas possibilidades, nenhuma decisão forçada</p>
      <div className="grid sm:grid-cols-2 gap-3 mt-4">
-      {(["europa","curso"] as Scenario[]).map(id=><button type="button" key={id} onClick={()=>setScenario(id)} className={"text-left rounded-2xl p-4 border min-h-24 transition-all "+(scenario===id?"bg-[#edf1e6] border-olive/35":"bg-[#faf9f6] border-[#eceade]")}><strong className="block text-sm text-ink">{scenarios[id].label}</strong><span className="block mt-1.5 text-xs leading-relaxed text-[#798070]">{scenarios[id].summary}</span></button>)}
+      {(["europa","curso"] as Scenario[]).map(id=><button type="button" key={id} onClick={()=>setScenario(id)} className={"text-left rounded-2xl p-4 border min-h-24 transition-all "+(scenario===id?"bg-[#edf1e6] border-olive/35":"bg-[#faf9f6] border-[#eceade]")}><strong className="block text-sm text-ink">{scenarios[id].label}</strong><span className="block mt-1.5 text-xs leading-relaxed text-[#798070]">{scenarios[id].summary}</span><span className="block mt-2 text-[11px] text-olive/85 font-medium">{scenarios[id].dates}</span></button>)}
      </div>
      <div className="grid sm:grid-cols-2 gap-3 mt-5">
       {scenarios[scenario].routes.map(route=><div key={route.label} className="rounded-2xl bg-[#f8f8f3] p-4 border border-[#eeeadd]">
@@ -154,7 +165,7 @@ export default function Ofertas(){
        </div>
       </div>)}
      </div>
-     <p className="mt-4 text-xs text-[#85897d]">Datas e aeroportos são hipóteses para comparação, não reservas nem decisão final. Busque também multidestino, bagagem e custo de chegar ao hotel.</p>
+     <p className="mt-4 text-xs text-[#85897d]">Os dois cenários têm os <strong>mesmos dias de embarque e retorno</strong>; o que muda são os aeroportos e a ordem dos blocos de passeio/curso. Datas e rotas são hipóteses, não reservas. Verifique bagagem, conexões e deslocamento até Liverpool.</p>
     </div>
     <div className="rounded-3xl bg-[#e8ece3] border border-[#dfe5d9] p-5 sm:p-7">
      <div className="flex items-start gap-3"><Bell className="h-5 w-5 mt-1 shrink-0 text-olive"/><div>
