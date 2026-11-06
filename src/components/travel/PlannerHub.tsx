@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BedDouble, BookOpenCheck, MapPinned, PiggyBank, ReceiptText, Sparkles, UsersRound } from "lucide-react";
+import { BedDouble, BookOpenCheck, CalendarDays, MapPinned, PiggyBank, ReceiptText, Sparkles, UsersRound } from "lucide-react";
 
 const actions = [
   {
@@ -8,6 +8,12 @@ const actions = [
     text: "Editar cidades, ordem do roteiro e hospedagens que todas enxergam.",
     icon: MapPinned,
     featured: true,
+  },
+  {
+    to: "/ferias-2028",
+    title: "Datas e férias",
+    text: "Comparar embarques e trocar passeio/curso sem mudar o total de dias.",
+    icon: CalendarDays,
   },
   {
     to: "/minha-viagem",
