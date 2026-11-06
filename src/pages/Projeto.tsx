@@ -9,6 +9,7 @@ const matrix:Item[]=[
  {title:"Calendário e férias CLT",phase:"Parcial",detail:"Datas comparativas, início semanal às segundas, 30 dias corridos de férias e eventual banco de horas; não considerar férias aprovadas sem confirmação."},
  {title:"Ordem do passeio e do curso",phase:"Existe, validar",detail:"Europa antes da escola é uma tendência, não decisão. Manter o cenário inverso visível."},
  {title:"Roteiro ferroviário e Bernina",phase:"Parcial",detail:"Milão, Tirano, Alpes suíços, Strasbourg, Bruxelas, Amsterdam, Londres e Liverpool são ideias sujeitas ao tempo disponível, logística e preços."},
+ {title:"Lugares de desejo por país",phase:"Existe, validar",detail:"País, busca de cidade, sugestões de cidades próximas do roteiro e parecer de encaixe com distâncias em linha reta. Desejos pessoais são privados e sugestões do grupo só entram no roteiro após confirmação."},
  {title:"Acesso exclusivo das três",phase:"Parcial",detail:"Sem chave compartilhada; perfis individuais e aprovação pela organizadora. Login real no celular ainda requer teste das três."},
  {title:"Cofrinho e metas individuais",phase:"Existe, validar",detail:"Metas e depósitos por viajante, guardados na nuvem; revisar cálculos e permissões com dados reais."},
  {title:"Gastos pessoais e Rateio",phase:"Existe, validar",detail:"Lançamentos pessoais começam privados. Só vão ao Rateio após escolha explícita; divisões por pessoas, valores ou porcentagem e registro dos acertos."},
