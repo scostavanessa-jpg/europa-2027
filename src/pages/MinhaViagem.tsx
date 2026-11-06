@@ -36,7 +36,7 @@ export default function MinhaViagem() {
   const [entryNotes, setEntryNotes] = useState("");
   const [priorityTitle, setPriorityTitle] = useState("");
   const [priorityCity, setPriorityCity] = useState("");
-  const [priorityCountryCode, setPriorityCountryCode] = useState("GB");
+  const [priorityCountryCode, setPriorityCountryCode] = useState("");
   const [priorityGeo, setPriorityGeo] = useState<GeoPlace | null>(null);
   const [advisoryRoute, setAdvisoryRoute] = useState<RouteStop[]>([]);
   const [priorityLevel, setPriorityLevel] = useState<PriorityLevel>("Desejável");
