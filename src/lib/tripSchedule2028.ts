@@ -5,8 +5,8 @@
  * as férias da CLT, o retorno ou os 4 ciclos semanais de aula.
  *
  * Aula: segunda a sexta, durante 4 semanas consecutivas. Fins de semana
- * dentro dessas semanas pertencem ao bloco do curso, não são uma quinta semana.
- * Datas ainda dependem de disponibilidade da Kaplan e de feriados no Reino Unido.
+ * entre as semanas são livres, e o passeio pode começar no sábado após
+ * a última sexta de aula. As turmas e feriados dependem de confirmação com a Kaplan.
  */
 export type TripOrder = "tour-first" | "course-first";
 export type VacationWindow = {
@@ -100,7 +100,6 @@ export type TripSchedule = VacationWindow & {
   tourismEnd: string;
   courseStart: string;
   courseEnd: string;
-  courseBlockEnd: string;
   tourismDays: number;
   courseWeeks: 4;
   arrivalNote: string;
@@ -112,18 +111,22 @@ export function buildTripSchedule(window: VacationWindow, order: TripOrder): Tri
   const courseStart = order === "course-first" ? firstMonday : addDays(firstMonday,7);
   // Four teaching weeks: Monday-Friday, weeks 1–4, last Friday is +25d.
   const courseEnd = addDays(courseStart,25);
-  const courseBlockEnd = addDays(courseStart,27);
   const tourismStart = order === "tour-first" ? window.abroadStart : addDays(courseEnd,1);
   const tourismEnd = order === "tour-first" ? addDays(courseStart,-1) : window.returnDate;
   const tourismDays = differenceDays(tourismStart,tourismEnd)+1;
 
+  const firstDay=new Date(courseStart+"T00:00:00Z").getUTCDay();
+  const lastDay=new Date(courseEnd+"T00:00:00Z").getUTCDay();
+  const blocksTouch=order==="tour-first"?
+    addDays(tourismEnd,1)===courseStart:addDays(courseEnd,1)===tourismStart;
   if (new Date(firstMonday+"T00:00:00Z").getUTCDay()!==1 ||
-      differenceDays(courseStart,courseBlockEnd)!==27 ||
-      tourismEnd<tourismStart || courseEnd>window.returnDate) {
+      firstDay!==1 || lastDay!==5 || differenceDays(courseStart,courseEnd)!==25 ||
+      !blocksTouch || tourismDays<7 || tourismEnd<tourismStart ||
+      courseEnd>window.returnDate) {
     throw Error("Janela de viagem inconsistente. Confira os limites antes de publicar.");
   }
   return {
-    ...window,order,tourismStart,tourismEnd,courseStart,courseEnd,courseBlockEnd,
+    ...window,order,tourismStart,tourismEnd,courseStart,courseEnd,
     tourismDays,courseWeeks:4,
     arrivalNote:order === "course-first"
       ? "Chegada no sábado; fim de semana para instalação em Liverpool. Curso começa na segunda-feira imediatamente seguinte."
