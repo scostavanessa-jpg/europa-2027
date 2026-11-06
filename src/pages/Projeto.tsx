@@ -7,7 +7,7 @@ type Item={title:string;phase:Phase;detail:string};
 const matrix:Item[]=[
  {title:"Identidade da viagem",phase:"Existe, validar",detail:"Vanessa, Camila e Danielle · quatro semanas de curso em Liverpool + cerca de uma semana pela Europa · 2028."},
  {title:"Calendário e férias CLT",phase:"Parcial",detail:"Datas comparativas, início semanal às segundas, 30 dias corridos de férias e eventual banco de horas; não considerar férias aprovadas sem confirmação."},
- {title:"Ordem do passeio e do curso",phase:"Existe, validar",detail:"Europa antes da escola é uma tendência, não decisão. Manter o cenário inverso visível."},
+ {title:"Ordem do passeio e do curso",phase:"Existe, validar",detail:"Comparar as duas ordens com as mesmas datas de embarque, retorno, férias e banco. Curso primeiro começa na primeira segunda após a chegada; passeio primeiro desloca o início das aulas para a segunda depois da semana de turismo. Sempre 4 semanas de curso e cerca de uma semana de passeio."},
  {title:"Roteiro ferroviário e Bernina",phase:"Parcial",detail:"Milão, Tirano, Alpes suíços, Strasbourg, Bruxelas, Amsterdam, Londres e Liverpool são ideias sujeitas ao tempo disponível, logística e preços."},
  {title:"Lugares de desejo por país",phase:"Existe, validar",detail:"País, busca de cidade, sugestões de cidades próximas do roteiro e parecer de encaixe com distâncias em linha reta. Desejos pessoais são privados e sugestões do grupo só entram no roteiro após confirmação."},
  {title:"Acesso exclusivo das três",phase:"Parcial",detail:"Sem chave compartilhada; perfis individuais e aprovação pela organizadora. Login real no celular ainda requer teste das três."},
