@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, CalendarDays, GraduationCap, Landmark, Plane, Sparkles, WalletCards } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, CalendarDays, GraduationCap, Landmark, Plane, Sparkles, WalletCards } from "lucide-react";
+import { vacationWindows, buildTripSchedule, type TripOrder, type TripSchedule } from "@/lib/tripSchedule2028";
 
 const holidays = [
   { date: "2028-04-14", label: "Sexta-feira Santa" },
@@ -8,74 +9,7 @@ const holidays = [
   { date: "2028-05-01", label: "Dia do Trabalho" },
 ];
 
-const options = [
-  {
-    id: "equilibrio",
-    badge: "Recomendação",
-    title: "Melhor equilíbrio",
-    subtitle: "Pouco banco, curso quase todo em abril e Tiradentes fora das férias.",
-    vacationStart: "2028-03-20",
-    vacationEnd: "2028-04-18",
-    flight: "2028-03-17",
-    abroadStart: "2028-03-18",
-    abroadEnd: "2028-04-23",
-    tourismStart: "2028-03-18",
-    tourismEnd: "2028-03-26",
-    courseStart: "2028-03-27",
-    courseEnd: "2028-04-21",
-    bank: ["2028-04-19", "2028-04-20"],
-    returnDate: "2028-04-23",
-    workReturn: "2028-04-24",
-    totalDays: 37,
-    bankDays: 2,
-    holidaysInside: ["14/04"],
-    holidaysSaved: ["21/04", "01/05"],
-  },
-  {
-    id: "abril",
-    badge: "Mais abril",
-    title: "Curso inteiro em abril",
-    subtitle: "Viaja uma semana mais tarde, fica 38 dias fora e usa 3 dias de banco.",
-    vacationStart: "2028-03-27",
-    vacationEnd: "2028-04-25",
-    flight: "2028-03-24",
-    abroadStart: "2028-03-25",
-    abroadEnd: "2028-05-01",
-    tourismStart: "2028-03-25",
-    tourismEnd: "2028-04-02",
-    courseStart: "2028-04-03",
-    courseEnd: "2028-04-28",
-    bank: ["2028-04-26", "2028-04-27", "2028-04-28"],
-    returnDate: "2028-05-01",
-    workReturn: "2028-05-02",
-    totalDays: 38,
-    bankDays: 3,
-    holidaysInside: ["14/04", "21/04"],
-    holidaysSaved: ["01/05"],
-  },
-  {
-    id: "feriados",
-    badge: "Máximo feriados",
-    title: "Preserva todos os feriados",
-    subtitle: "Matematicamente eficiente, mas antecipa bastante a viagem.",
-    vacationStart: "2028-03-13",
-    vacationEnd: "2028-04-11",
-    flight: "2028-03-10",
-    abroadStart: "2028-03-11",
-    abroadEnd: "2028-04-16",
-    tourismStart: "2028-03-11",
-    tourismEnd: "2028-03-19",
-    courseStart: "2028-03-20",
-    courseEnd: "2028-04-14",
-    bank: ["2028-04-12", "2028-04-13"],
-    returnDate: "2028-04-16",
-    workReturn: "2028-04-17",
-    totalDays: 37,
-    bankDays: 2,
-    holidaysInside: [],
-    holidaysSaved: ["14/04", "21/04", "01/05"],
-  },
-] as const;
+const options = vacationWindows;
 
 const months = [
   { year: 2028, month: 2, label: "Março" },
@@ -88,7 +22,7 @@ const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 const inRange = (date: string, start: string, end: string) => date >= start && date <= end;
 const fmt = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
-function MonthCalendar({ year, month, label, option }: { year: number; month: number; label: string; option: (typeof options)[number] }) {
+function MonthCalendar({ year, month, label, option }: { year: number; month: number; label: string; option: TripSchedule }) {
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
   const leading = (first.getDay() + 6) % 7;
@@ -143,7 +77,9 @@ function MonthCalendar({ year, month, label, option }: { year: number; month: nu
 
 export default function Ferias2028() {
   const [selected, setSelected] = useState<(typeof options)[number]["id"]>("equilibrio");
-  const option = useMemo(() => options.find((o) => o.id === selected) ?? options[0], [selected]);
+  const [order,setOrder] = useState<TripOrder>("tour-first");
+  const base=useMemo(()=>options.find(o=>o.id===selected)??options[0],[selected]);
+  const option=useMemo(()=>buildTripSchedule(base,order),[base,order]);
 
   return (
     <div className="min-h-screen bg-gradient-warm text-foreground">
@@ -158,7 +94,22 @@ export default function Ferias2028() {
         <section className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-3 py-1 text-xs text-olive"><Sparkles className="h-3.5 w-3.5" /> 30 dias de férias + banco só quando valer a pena</div>
           <h1 className="font-display text-4xl md:text-6xl text-ink mt-5 leading-tight">Qual janela faz nossas férias renderem mais?</h1>
-          <p className="mt-4 text-muted-foreground leading-relaxed">Objetivo: 4 semanas de curso + 1 semana passeando, embarque na sexta à noite e retorno ao Brasil até 13/05/2028. Feriado dentro dos 30 dias de férias não gera ganho — por isso a comparação prioriza feriados nas pontas.</p>
+          <p className="mt-4 text-muted-foreground leading-relaxed">Objetivo: quatro semanas consecutivas de curso + cerca de uma semana passeando, embarque na sexta à noite e retorno ao Brasil antes de 13/05/2028. Ao inverter a ordem, os voos e os 30 dias de férias permanecem iguais: só trocamos o passeio e o curso.</p>
+        </section>
+
+        <section className="mt-7 rounded-3xl border border-olive/25 bg-card p-5 sm:p-6 shadow-card" aria-label="Escolha a ordem da viagem">
+          <div className="flex items-center gap-2 mb-3"><ArrowRightLeft className="h-5 w-5 text-olive"/><h2 className="font-display text-2xl text-ink">O que vem primeiro?</h2></div>
+          <div className="grid sm:grid-cols-2 gap-2">
+            <button type="button" aria-pressed={order==="tour-first"} onClick={()=>setOrder("tour-first")}
+              className={`min-h-14 text-sm px-4 py-3 rounded-2xl border text-left transition-colors ${order==="tour-first"?"bg-olive text-white border-olive":"bg-secondary/50 border-border/60 text-ink hover:border-olive/40"}`}>
+              <strong className="block">Passear primeiro</strong><span className="block text-xs mt-1 opacity-85">1 semana pela Europa → 4 de curso</span>
+            </button>
+            <button type="button" aria-pressed={order==="course-first"} onClick={()=>setOrder("course-first")}
+              className={`min-h-14 text-sm px-4 py-3 rounded-2xl border text-left transition-colors ${order==="course-first"?"bg-olive text-white border-olive":"bg-secondary/50 border-border/60 text-ink hover:border-olive/40"}`}>
+              <strong className="block">Intercâmbio primeiro</strong><span className="block text-xs mt-1 opacity-85">4 semanas de curso → 1 de passeio</span>
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">A seleção atualiza todas as datas no calendário abaixo. Não desloca o embarque e a volta para fingir que os cenários têm a mesma duração.</p>
         </section>
 
         <section className="grid md:grid-cols-3 gap-4 mt-10">
@@ -181,7 +132,7 @@ export default function Ferias2028() {
         <section className="mt-8 rounded-[2rem] border border-gold/30 bg-card p-6 md:p-8 shadow-soft">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
             <div>
-              <div className="text-xs uppercase tracking-[0.2em] text-olive">Cenário selecionado</div>
+              <div className="text-xs uppercase tracking-[0.2em] text-olive">Cenário selecionado · {order==="tour-first"?"Passeio antes do curso":"Intercâmbio antes do passeio"}</div>
               <h2 className="font-display text-3xl text-ink mt-1">{option.title}</h2>
             </div>
             <div className="rounded-2xl bg-olive/10 px-4 py-3 text-sm"><strong>{option.totalDays} dias consecutivos fora</strong><br/><span className="text-muted-foreground">com {option.bankDays} dias de banco</span></div>
@@ -200,6 +151,10 @@ export default function Ferias2028() {
             <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200/60 p-4"><div className="text-xs text-muted-foreground">Feriados preservados</div><strong>{option.holidaysSaved.join(", ")}</strong></div>
           </div>
 
+          <div className="mt-5 rounded-2xl border border-olive/15 bg-olive/5 p-4 text-sm text-foreground/80 leading-relaxed">
+            <strong className="text-ink">Encaixe das semanas:</strong> {option.arrivalNote}
+            {" "}As aulas ocupam quatro semanas consecutivas de segunda a sexta. Passeio e estudos não se sobrepõem em dias de aula.
+          </div>
           <div className="mt-5 text-sm text-muted-foreground">Retorno previsto: <strong className="text-foreground">{fmt(option.returnDate)}</strong> · volta ao trabalho: <strong className="text-foreground">{fmt(option.workReturn)}</strong>. Limite pessoal para estar no Brasil: <strong className="text-foreground">13/05</strong>.</div>
         </section>
 
@@ -218,7 +173,7 @@ export default function Ferias2028() {
         </section>
 
         <section className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 text-sm text-muted-foreground leading-relaxed">
-          <strong className="text-foreground">Ponto de atenção:</strong> o calendário acima otimiza as férias brasileiras. A escola europeia pode ter fechamento em feriados locais (por exemplo, período da Páscoa), então o número de dias efetivos de aula precisa ser confirmado quando a escola/turma for escolhida.
+          <strong className="text-foreground">Ponto de atenção:</strong> a Páscoa de 2028 tem Sexta-feira Santa em 14/04 e Easter Monday em 17/04 na Inglaterra. O calendário acima organiza quatro semanas corridas de curso, mas não garante 20 dias letivos: é necessário confirmar o fechamento e eventuais compensações diretamente com a Kaplan Liverpool antes da matrícula.
         </section>
       </main>
     </div>
