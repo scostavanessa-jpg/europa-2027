@@ -12,6 +12,7 @@ import Rateio from "./pages/Rateio";
 import Planejamento from "./pages/Planejamento";
 import Projeto from "./pages/Projeto";
 import Diagnostico from "./pages/Diagnostico";
+import Ferias2028 from "./pages/Ferias2028";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { TravelDock } from "@/components/travel/TravelDock";
 
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/diagnostico" element={<Diagnostico />} />
           <Route path="/" element={<PrivateRoute><Index /></PrivateRoute>} />
           <Route path="/planejar" element={<PrivateRoute><Planejamento /></PrivateRoute>} />
+          <Route path="/ferias-2028" element={<PrivateRoute><Ferias2028 /></PrivateRoute>} />
           <Route path="/ofertas" element={<PrivateRoute><Ofertas /></PrivateRoute>} />
           <Route path="/grupo" element={<PrivateRoute><Grupo /></PrivateRoute>} />
           <Route path="/minha-viagem" element={<PrivateRoute><MinhaViagem /></PrivateRoute>} />
