@@ -71,6 +71,7 @@ export function CityAdvisorField({
 
   const fit=selected?evaluateFit(selected,stops):null;
   const mapLink=selected?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(selected.name+", "+selected.country):"";
+  const transitLink=selected&&fit?.nearest?"https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(fit.nearest)+"&destination="+encodeURIComponent(selected.name+", "+selected.country)+"&travelmode=transit":"";
   return <div className="space-y-3">
     <div className="grid sm:grid-cols-2 gap-3">
       <div>
@@ -132,9 +133,14 @@ export function CityAdvisorField({
         <span className={"text-[11px] px-2.5 py-1 rounded-full font-semibold "+fitColor[fit.level]}>{fit.title}</span>
       </div>
       <p className="mt-2 text-sm text-[#677061] leading-relaxed">{fit.detail}</p>
-      <a href={mapLink} target="_blank" rel="noopener noreferrer" className="inline-flex gap-1.5 items-center min-h-9 mt-2 text-xs text-olive font-medium">
-        Conferir no mapa <ExternalLink className="h-3.5 w-3.5"/>
-      </a>
+      <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2">
+        <a href={mapLink} target="_blank" rel="noopener noreferrer" className="inline-flex gap-1.5 items-center min-h-9 text-xs text-olive font-medium">
+          Ver cidade no mapa <ExternalLink className="h-3.5 w-3.5"/>
+        </a>
+        {transitLink&&<a href={transitLink} target="_blank" rel="noopener noreferrer" className="inline-flex gap-1.5 items-center min-h-9 text-xs text-olive font-medium">
+          Conferir transporte desde {fit?.nearest} <ExternalLink className="h-3.5 w-3.5"/>
+        </a>}
+      </div>
     </div>}
     {countryCode&&city.trim()&&!selected&&<p className="text-xs text-[#9e794d]">
       Escolha uma cidade sugerida para receber a avaliação de proximidade. Se salvar apenas o texto, nenhuma distância será presumida.
