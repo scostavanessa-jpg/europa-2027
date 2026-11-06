@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { ArrowRightLeft, CalendarDays, GraduationCap, Plane, TriangleAlert } from "lucide-react";
 import { buildTripSchedule, defaultTripWindow, formatTripShort, type TripOrder } from "@/lib/tripSchedule2028";
 
@@ -51,6 +52,9 @@ export const DateScenarios = () => (
       })}
     </div>
 
+    <Link to="/ferias-2028" className="mt-6 inline-flex items-center justify-center gap-2 min-h-12 rounded-full bg-olive px-5 text-sm text-white font-medium hover:bg-olive/90">
+      <CalendarDays className="h-4 w-4" /> Abrir calendário e comparar todas as datas
+    </Link>
     <div className="mt-5 rounded-2xl border border-olive/25 bg-card p-4 sm:p-5 text-sm text-foreground/75 leading-relaxed">
       <strong className="text-ink">O que realmente muda:</strong> o aeroporto de entrada/saída, os deslocamentos e a data de início do curso.
       O total de dias fora, o embarque, o retorno, as férias e o banco de horas são iguais nas duas alternativas.
