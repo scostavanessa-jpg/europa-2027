@@ -9,6 +9,9 @@ Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e
 
 **Decisões atuais (2028):**
 - Março/abril de 2028; ordem **Europa → Liverpool** é tendência, mas **Liverpool → Europa permanece alternativa**. Não marcar uma opção como definitiva antes da decisão das três.
+- **Regra invariável de duração (corrigida 06/11/2026):** 1 semana aproximada de turismo e 4 semanas consecutivas de curso. Ao comparar a ordem **com a mesma janela de viagem**, manter embarque, retorno, 30 dias CLT e banco iguais; deslocar apenas os blocos. Se curso primeiro, começar as aulas na primeira segunda-feira após a chegada; se passeio primeiro, começar na segunda-feira após a semana de turismo.
+- Exemplo comparável sem mexer nos voos: ida sexta 17/03 e volta domingo 23/04. Passeio primeiro: Europa 18–26/03, aulas 27/03–21/04. Curso primeiro: aulas 20/03–14/04, Europa 15–23/04. Outros intervalos usam o mesmo cálculo central em `src/lib/tripSchedule2028.ts`.
+- Evitar falsear carga horária: feriados no Reino Unido em 14 e 17/04/2028 podem afetar 1 ou 2 dias de aula dependendo da ordem; confirmar diretamente com a Kaplan Liverpool.
 - Até ~5 semanas viajando, 4 semanas de curso, ~1 semana de passeio, podendo embarcar sexta à noite.
 - Considerar **30 dias corridos de férias CLT**, não presumir aprovação de fracionamento, considerar banco de horas somente se necessário e autorizado, incluir feriados no cálculo.
 - As turmas começam semanalmente às segundas-feiras, sujeitas à validação de calendário oficial da escola.
