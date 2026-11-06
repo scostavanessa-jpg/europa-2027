@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowDown, ArrowLeft, ArrowUp, BedDouble, ExternalLink, Loader2, MapPinned, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, BedDouble, ExternalLink, Loader2, MapPinned, Plus, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { SharedDestinationWishes } from "@/components/travel/SharedDestinationWishes";
 
 type RouteItem = {
   id: string;
@@ -231,10 +232,11 @@ export default function Planejamento() {
         {loading ? (
           <div className="rounded-3xl border border-border/60 bg-card p-10 grid place-items-center"><Loader2 className="h-7 w-7 animate-spin text-olive"/></div>
         ) : (
-          <Tabs defaultValue={window.location.hash === "#hospedagens" ? "hospedagens" : "roteiro"}>
-            <TabsList className="w-full justify-start overflow-x-auto bg-secondary/60">
-              <TabsTrigger value="roteiro"><MapPinned className="h-4 w-4 mr-1.5"/>Roteiro</TabsTrigger>
-              <TabsTrigger value="hospedagens"><BedDouble className="h-4 w-4 mr-1.5"/>Hospedagens</TabsTrigger>
+          <Tabs defaultValue={window.location.hash === "#hospedagens" ? "hospedagens" : window.location.hash === "#desejos" ? "desejos" : "roteiro"}>
+            <TabsList className="w-full h-auto justify-start overflow-x-auto bg-secondary/60 flex-nowrap">
+              <TabsTrigger value="roteiro" className="shrink-0"><MapPinned className="h-4 w-4 mr-1.5"/>Roteiro</TabsTrigger>
+              <TabsTrigger value="desejos" className="shrink-0"><Sparkles className="h-4 w-4 mr-1.5"/>Lugares de desejo</TabsTrigger>
+              <TabsTrigger value="hospedagens" className="shrink-0"><BedDouble className="h-4 w-4 mr-1.5"/>Hospedagens</TabsTrigger>
             </TabsList>
 
             <TabsContent value="roteiro" className="mt-6 space-y-5">
@@ -274,6 +276,10 @@ export default function Planejamento() {
                   </div>
                 ))}
               </div>
+            </TabsContent>
+
+            <TabsContent value="desejos" id="desejos" className="mt-6 space-y-5">
+              <SharedDestinationWishes routeStops={route} onPromoted={load}/>
             </TabsContent>
 
             <TabsContent value="hospedagens" id="hospedagens" className="mt-6 space-y-5">
