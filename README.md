@@ -85,6 +85,14 @@ Planejar **juntas**, em um único site responsivo, a viagem de Vanessa, Camila e
 
 **Decisão recomendada:** manter este portal como fonte única do planejamento, aprender com as melhores experiências de mercado e integrar somente serviços que efetivamente melhorarem o trabalho das três.
 
+### Lugares de desejo com recomendação geográfica (06/11/2026)
+
+- No painel **Minha viagem → Prioridades**, permitir escolher país e pesquisar cidade (Open-Meteo/GeoNames com sugestões locais se a API estiver indisponível); avaliar a proximidade às paradas compartilhadas e guardar título, país, cidade e coordenadas apenas na lista pessoal.
+- No painel **Planejamento → Lugares de desejo**, permitir criar uma ideia compartilhada, ver avaliação contextual e **promover para o roteiro somente mediante confirmação explícita**.
+- Classificar sugestões por distância geográfica aproximada à cidade conhecida mais próxima, não por tempo de trem; avisar quando o desvio pode exigir mudança de cidades e quando o curso em Liverpool restringe passeios em dias úteis.
+- Dados de localização dinâmicos: Open-Meteo Geocoding API (base GeoNames, licença CC BY 4.0, com atribuição no formulário). API gratuita para uso não comercial sem chave, sujeita à política do provedor. Catálogo local funciona como contingência. Não afirmar que distâncias em linha reta representam itinerário ferroviário.
+- Conservar separados sonhos pessoais, ideias compartilhadas e paradas confirmadas. Não converter automaticamente um desejo em reserva ou compra.
+
 ## 6. Critérios de entrega
 
 Para cada mudança:
