@@ -10,11 +10,13 @@ import { ArrowLeft, Bell, Loader2, PiggyBank, Sparkles, Target, ReceiptText, Wal
 import { toast } from "sonner";
 import { PersonalExpenses } from "@/components/travel/PersonalExpenses";
 import { AgencyPayments } from "@/components/travel/AgencyPayments";
+import { CityAdvisorField } from "@/components/travel/CityAdvisorField";
+import { countryCodeFromName, countryName, evaluateFit, localCityByName, type GeoPlace, type RouteStop } from "@/lib/destinationAdvisor";
 
 type SavingGoal = { id: string; target_total_brl: number; monthly_target_brl: number; notes: string | null };
 type SavingEntry = { id: string; entry_date: string; amount_brl: number; notes: string | null };
 type PriorityLevel = "Imperdível" | "Desejável" | "Opcional";
-type PriorityItem = { id: string; title: string; city: string | null; priority: string; notes: string | null };
+type PriorityItem = { id: string; title: string; city: string | null; country: string | null; latitude: number | null; longitude: number | null; priority: string; notes: string | null };
 type AlertPrefs = { flights: boolean; currency: boolean; checklist: boolean; lodging: boolean; events: boolean };
 
 const money = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
@@ -33,7 +35,10 @@ export default function MinhaViagem() {
   const [entryAmount, setEntryAmount] = useState("");
   const [entryNotes, setEntryNotes] = useState("");
   const [priorityTitle, setPriorityTitle] = useState("");
-  const [priorityCity, setPriorityCity] = useState("Liverpool");
+  const [priorityCity, setPriorityCity] = useState("");
+  const [priorityCountryCode, setPriorityCountryCode] = useState("GB");
+  const [priorityGeo, setPriorityGeo] = useState<GeoPlace | null>(null);
+  const [advisoryRoute, setAdvisoryRoute] = useState<RouteStop[]>([]);
   const [priorityLevel, setPriorityLevel] = useState<PriorityLevel>("Desejável");
   const [priorityNotes, setPriorityNotes] = useState("");
 
@@ -48,16 +53,18 @@ export default function MinhaViagem() {
     if(!user?.id||!participant?.id){setLoading(false);return;}
     setLoading(true);
     try{
-      const [goalRes,entriesRes,prioritiesRes,alertsRes]=await Promise.all([
+      const [goalRes,entriesRes,prioritiesRes,alertsRes,routeRes]=await Promise.all([
         supabase.from("savings_goals").select("id,target_total_brl,monthly_target_brl,notes").eq("participant_id",participant.id).maybeSingle(),
         supabase.from("savings_entries").select("id,entry_date,amount_brl,notes").eq("participant_id",participant.id).order("entry_date",{ascending:false}),
-        supabase.from("personal_priorities").select("id,title,city,priority,notes").eq("user_id",user.id).order("created_at",{ascending:false}),
+        supabase.from("personal_priorities").select("id,title,city,country,latitude,longitude,priority,notes").eq("user_id",user.id).order("created_at",{ascending:false}),
         supabase.from("alert_preferences").select("flights,currency,checklist,lodging,events").eq("user_id",user.id).maybeSingle(),
+        supabase.from("route_items").select("city,country").order("sort_order",{ascending:true}),
       ]);
       if(goalRes.error)throw goalRes.error;if(entriesRes.error)throw entriesRes.error;if(prioritiesRes.error)throw prioritiesRes.error;if(alertsRes.error)throw alertsRes.error;
       setGoal(goalRes.data as SavingGoal|null);
       setEntries((entriesRes.data??[]) as SavingEntry[]);
       setPriorities((prioritiesRes.data??[]) as PriorityItem[]);
+      if (!routeRes.error) setAdvisoryRoute((routeRes.data??[]) as RouteStop[]);
       if(alertsRes.data){setAlerts(alertsRes.data as AlertPrefs);setHasAlerts(true);}else{setAlerts(defaultAlerts);setHasAlerts(false);}
     }catch(err:any){toast.error("Não consegui carregar sua área pessoal.",{description:err?.message});}
     finally{setLoading(false);}
@@ -87,7 +94,14 @@ export default function MinhaViagem() {
 
   const addPriority=async(e:FormEvent)=>{
     e.preventDefault();if(!user?.id||!priorityTitle.trim())return;
-    try{const{data,error}=await supabase.from("personal_priorities").insert({user_id:user.id,title:priorityTitle.trim(),city:priorityCity.trim()||null,priority:priorityLevel,notes:priorityNotes.trim()||null}).select("id,title,city,priority,notes").single();if(error)throw error;setPriorities(v=>[data as PriorityItem,...v]);setPriorityTitle("");setPriorityNotes("");toast.success("Prioridade salva.");}catch(err:any){toast.error("Não consegui salvar a prioridade.",{description:err?.message});}
+    try{const{data,error}=await supabase.from("personal_priorities").insert({
+      user_id:user.id,title:priorityTitle.trim(),
+      city:priorityGeo?.name||priorityCity.trim()||null,
+      country:priorityCountryCode?countryName(priorityCountryCode):null,
+      latitude:priorityGeo?.latitude??null,longitude:priorityGeo?.longitude??null,
+      priority:priorityLevel,notes:priorityNotes.trim()||null
+    }).select("id,title,city,country,latitude,longitude,priority,notes").single();
+    if(error)throw error;setPriorities(v=>[data as PriorityItem,...v]);setPriorityTitle("");setPriorityNotes("");setPriorityCity("");setPriorityGeo(null);toast.success("Desejo pessoal salvo. A sugestão não altera o roteiro do grupo.");}catch(err:any){toast.error("Não consegui salvar a prioridade.",{description:err?.message});}
   };
   const deletePriority=async(id:string)=>{if(!confirm("Excluir esta prioridade?"))return;const{error}=await supabase.from("personal_priorities").delete().eq("id",id);if(error)return toast.error("Não consegui excluir.",{description:error.message});setPriorities(v=>v.filter(x=>x.id!==id));};
 
@@ -121,8 +135,29 @@ export default function MinhaViagem() {
 
       <TabsContent value="agencia" className="mt-6"><AgencyPayments/></TabsContent>
 
-      <TabsContent value="prioridades" className="mt-6 space-y-5"><div className="rounded-3xl border border-gold/30 bg-card p-6 shadow-card"><div className="flex items-center gap-3 mb-5"><Target className="h-5 w-5 text-olive"/><div><h2 className="font-display text-2xl text-ink">O que importa para você</h2><p className="text-sm text-muted-foreground">Suas prioridades ficam privadas na sua conta.</p></div></div><form onSubmit={addPriority} className="grid md:grid-cols-2 gap-3"><div><Label>Quero fazer</Label><Input value={priorityTitle} onChange={e=>setPriorityTitle(e.target.value)} placeholder="Ex.: treinar jiu-jitsu" required/></div><div><Label>Cidade</Label><Input value={priorityCity} onChange={e=>setPriorityCity(e.target.value)}/></div><div><Label>Prioridade</Label><select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={priorityLevel} onChange={e=>setPriorityLevel(e.target.value as PriorityLevel)}><option>Imperdível</option><option>Desejável</option><option>Opcional</option></select></div><div><Label>Observação</Label><Input value={priorityNotes} onChange={e=>setPriorityNotes(e.target.value)} placeholder="Detalhes, horário, ideia…"/></div><Button className="rounded-full md:w-fit">Adicionar prioridade</Button></form></div>
-        <div className="grid md:grid-cols-2 gap-3">{priorities.length===0?<p className="text-sm text-muted-foreground">Nenhuma prioridade ainda.</p>:priorities.map(item=><div key={item.id} className="rounded-3xl bg-card border border-border/60 p-5 shadow-card"><div className="text-[10px] uppercase tracking-wider text-olive">{item.city||"Sem cidade"}</div><h3 className="font-display text-2xl text-ink mt-1">{item.title}</h3><span className="inline-block mt-3 text-xs rounded-full px-3 py-1 bg-gold/15 border border-gold/30">{item.priority}</span>{item.notes&&<p className="text-sm text-muted-foreground mt-3">{item.notes}</p>}<Button size="sm" variant="ghost" className="mt-3" onClick={()=>void deletePriority(item.id)}>Excluir</Button></div>)}</div>
+      <TabsContent value="prioridades" className="mt-6 space-y-5"><div className="rounded-3xl border border-gold/30 bg-card p-6 shadow-card"><div className="flex items-center gap-3 mb-5"><Target className="h-5 w-5 text-olive"/><div><h2 className="font-display text-2xl text-ink">O que importa para você</h2><p className="text-sm text-muted-foreground">Seus desejos ficam privados. Escolha um país para receber cidades próximas e uma avaliação de encaixe com o roteiro compartilhado.</p></div></div><form onSubmit={addPriority} className="grid md:grid-cols-2 gap-3"><div><Label>Quero fazer</Label><Input value={priorityTitle} onChange={e=>setPriorityTitle(e.target.value)} placeholder="Ex.: treinar jiu-jitsu" required/></div><div className="md:col-span-2">
+              <CityAdvisorField prefix="personal-wish" countryCode={priorityCountryCode} city={priorityCity} selected={priorityGeo} stops={advisoryRoute}
+                onCountryChange={code=>{setPriorityCountryCode(code);setPriorityCity("");setPriorityGeo(null);}}
+                onCityChange={v=>{setPriorityCity(v);setPriorityGeo(null);}}
+                onSelect={place=>{setPriorityCountryCode(place.countryCode);setPriorityCity(place.name);setPriorityGeo(place);}}/>
+            </div><div><Label>Prioridade</Label><select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={priorityLevel} onChange={e=>setPriorityLevel(e.target.value as PriorityLevel)}><option>Imperdível</option><option>Desejável</option><option>Opcional</option></select></div><div><Label>Observação</Label><Input value={priorityNotes} onChange={e=>setPriorityNotes(e.target.value)} placeholder="Detalhes, horário, ideia…"/></div><Button className="rounded-full md:w-fit">Adicionar prioridade</Button></form></div>
+        <div className="grid md:grid-cols-2 gap-3">{priorities.length===0?<p className="text-sm text-muted-foreground">Nenhuma prioridade ainda.</p>:priorities.map(item=>{
+          const known=item.city?localCityByName(item.city,item.country):null;
+          const geo=item.latitude!==null&&item.longitude!==null?
+            {name:item.city||"",country:item.country||"",countryCode:countryCodeFromName(item.country),latitude:item.latitude,longitude:item.longitude,source:"curated" as const}:
+            known;
+          const fit=geo?evaluateFit(geo,advisoryRoute):null;
+          return <div key={item.id} className="rounded-3xl bg-card border border-border/60 p-5 shadow-card">
+            <div className="text-[10px] uppercase tracking-wider text-olive">{item.city||"Sem cidade"}{item.country?" · "+item.country:""}</div>
+            <h3 className="font-display text-2xl text-ink mt-1">{item.title}</h3>
+            <span className="inline-block mt-3 text-xs rounded-full px-3 py-1 bg-gold/15 border border-gold/30">{item.priority}</span>
+            {fit&&<p className="mt-3 rounded-xl bg-[#edf1e6] p-3 text-xs text-[#64765b] leading-relaxed">
+              <b>{fit.title}.</b> {fit.detail}
+            </p>}
+            {item.notes&&<p className="text-sm text-muted-foreground mt-3">{item.notes}</p>}
+            <Button size="sm" variant="ghost" className="mt-3" onClick={()=>void deletePriority(item.id)}>Excluir</Button>
+          </div>;
+        })}</div>
       </TabsContent>
 
       <TabsContent value="alertas" className="mt-6"><div className="rounded-3xl border border-gold/30 bg-card p-6 shadow-card"><h2 className="font-display text-2xl text-ink">O que deve chamar sua atenção</h2><p className="text-sm text-muted-foreground mt-2 mb-5">Preferências pessoais para a Central de Alertas.</p><div className="space-y-3">{([['flights','Queda de preço de voos'],['currency','Euro/libra em faixa interessante'],['checklist','Prazos do checklist'],['lodging','Hospedagem e cancelamento'],['events','Eventos e experiências locais']] as [keyof AlertPrefs,string][]).map(([key,label])=><label key={key} className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-secondary/40"><span className="text-sm text-ink">{label}</span><input type="checkbox" className="h-5 w-5" checked={alerts[key]} onChange={e=>void toggleAlert(key,e.target.checked)}/></label>)}</div></div></TabsContent>
